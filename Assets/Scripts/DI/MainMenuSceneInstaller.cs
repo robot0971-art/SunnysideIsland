@@ -15,8 +15,17 @@ namespace DI
         
         protected override void InstallSceneBindings()
         {
-            if (_uiManager != null) Container.RegisterInstance<IUIManager>(_uiManager);
-            if (_localizationManager != null) Container.RegisterInstance<ILocalizationManager>(_localizationManager);
+            if (_uiManager != null)
+            {
+                Container.RegisterInstance(_uiManager);
+                Container.RegisterInstance<IUIManager>(_uiManager);
+            }
+            
+            if (_localizationManager != null)
+            {
+                Container.RegisterInstance(_localizationManager);
+                Container.RegisterInstance<ILocalizationManager>(_localizationManager);
+            }
         }
     }
 }

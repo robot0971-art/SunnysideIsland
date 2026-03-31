@@ -14,6 +14,7 @@ using SunnysideIsland.Survival;
 using SunnysideIsland.Tutorial;
 using SunnysideIsland.UI;
 using SunnysideIsland.GameData;
+using SunnysideIsland.Localization;
 
 namespace DI
 {
@@ -52,6 +53,10 @@ namespace DI
         [SerializeField] private TutorialManager _tutorialManager;
         [SerializeField] private UIManager _uiManager;
         [SerializeField] private ItemSpriteManager _itemSpriteManager;
+        [SerializeField] private LocalizationManager _localizationManager;
+        
+        [Header("=== Shared Data ===")]
+        [SerializeField] private GameData _gameData;
         
         protected override void InstallSceneBindings()
         {
@@ -79,8 +84,19 @@ namespace DI
             if (_weatherSystem != null) Container.RegisterInstance(_weatherSystem);
             
             if (_tutorialManager != null) Container.RegisterInstance(_tutorialManager);
-            if (_uiManager != null) Container.RegisterInstance<IUIManager>(_uiManager);
+            if (_uiManager != null)
+            {
+                Container.RegisterInstance(_uiManager);
+                Container.RegisterInstance<IUIManager>(_uiManager);
+            }
             if (_itemSpriteManager != null) Container.RegisterInstance<IItemSpriteManager>(_itemSpriteManager);
+            if (_localizationManager != null)
+            {
+                Container.RegisterInstance(_localizationManager);
+                Container.RegisterInstance<ILocalizationManager>(_localizationManager);
+            }
+            
+            if (_gameData != null) Container.RegisterInstance(_gameData);
         }
     }
 }
