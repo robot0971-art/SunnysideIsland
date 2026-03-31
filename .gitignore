@@ -1,31 +1,24 @@
-# This .gitignore file should be placed at the root of your Unity project directory
-#
+# =====================
+# Unity
+# =====================
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
-#
-/[Ll]ibrary/
-/[Tt]emp/
-/[Oo]bj/
-/[Bb]uild/
-/[Bb]uilds/
-/[Ll]ogs/
-/[Uu]ser[Ss]ettings/
+Unity/[Ll]ibrary/
+Unity/[Tt]emp/
+Unity/[Oo]bj/
+Unity/[Bb]uild/
+Unity/[Bb]uilds/
+Unity/[Ll]ogs/
+Unity/[Uu]ser[Ss]ettings/
 
 # MemoryCaptures can get excessive
-/[Mm]emoryCaptures/
+Unity/[Mm]emoryCaptures/
 
 # Recorded songs can get excessive
-/[Rr]ecordings/
-
-# Assets/AddressableAssetsData/config.json can be generated
-# /Assets/AddressableAssetsData/*/*.bin*
-
-# Assets/StreamingAssets/aa.meta can be generated
-# /Assets/StreamingAssets/aa/*
+Unity/[Rr]ecordings/
 
 # External editor temp files
 *.csproj
 *.unityproj
-*.sln
 *.suo
 *.tmp
 *.user
@@ -53,7 +46,25 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+# =====================
+# Node.js (WebBackend)
+# =====================
+# Dependencies
+WebBackend/node_modules/
+
+# Environment
+WebBackend/.env
+
+# Database
+WebBackend/db/*.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# =====================
 # OS generated
+# =====================
 .DS_Store
 .DS_Store?
 ._*
