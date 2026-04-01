@@ -1,24 +1,23 @@
 # =====================
 # Unity
 # =====================
-# Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
-Unity/[Ll]ibrary/
-Unity/[Tt]emp/
-Unity/[Oo]bj/
-Unity/[Bb]uild/
-Unity/[Bb]uilds/
-Unity/[Ll]ogs/
-Unity/[Uu]ser[Ss]ettings/
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
 
-# MemoryCaptures can get excessive
-Unity/[Mm]emoryCaptures/
-
-# Recorded songs can get excessive
-Unity/[Rr]ecordings/
-
-# External editor temp files
+# =====================
+# Unity Generated Files
+# =====================
 *.csproj
 *.unityproj
+*.sln
+*.slnx
 *.suo
 *.tmp
 *.user
@@ -27,48 +26,57 @@ Unity/[Rr]ecordings/
 *.booproj
 *.svd
 *.pdb
+*.mdb
 *.opendb
 *.VC.db
 
-# Unity3D generated meta files
-*.pidb.meta
-*.pdb.meta
-*.mdb.meta
+# =====================
+# IDE
+# =====================
+# Visual Studio
+.vs/
+*.vsconfig
 
-# Unity3D generated file on crash reports
-sysinfo.txt
+# VS Code
+.vscode/
+*.code-workspace
 
-# Builds
-*.apk
-*.unitypackage
-*.app
-
-# Crashlytics generated file
-crashlytics-build.properties
+# Rider / JetBrains
+.idea/
+*.sln.iml
 
 # =====================
-# Node.js (WebBackend)
-# =====================
-# Dependencies
-WebBackend/node_modules/
-
-# Environment
-WebBackend/.env
-
-# Database
-WebBackend/db/*.db
-
-# Logs
-*.log
-npm-debug.log*
-
-# =====================
-# OS generated
+# OS
 # =====================
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
+Desktop.ini
+
+# =====================
+# Others
+# =====================
+# Asset Store Tools
+[Aa]sset[Ss]tore[Tt]ools*
+
+# Crashlytics
+crashlytics-build.properties
+
+# Packed Addressables
+/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
+
+# Temporary auto-generated Android Assets
+/[Aa]ssets/[Ss]treamingAssets/aa.meta
+/[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# =====================
+# Project Specific
+# =====================
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Temporary files
+*.swp
+*.swo
+*~
