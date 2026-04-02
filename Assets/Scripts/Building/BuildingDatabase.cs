@@ -101,6 +101,8 @@ namespace SunnysideIsland.Building
         public string UpgradeTo;
         public bool IsUnlockedDefault;
         public GameObject BuildingPrefab;
+        public Sprite IconSprite; // 추가: 직접 할당할 아이콘 스프라이트
+        public float IconScale = 1f; // 추가: UI 아이콘의 추가 스케일 조절용
     }
 
     /// <summary>

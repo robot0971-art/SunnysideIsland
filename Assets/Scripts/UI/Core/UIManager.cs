@@ -18,6 +18,7 @@ namespace SunnysideIsland.UI
         bool HasOpenPanels { get; }
     }
 
+    [DefaultExecutionOrder(-50)]
     public class UIManager : MonoBehaviour, IUIManager
     {
         public static UIManager Instance { get; private set; }
@@ -33,6 +34,17 @@ namespace SunnysideIsland.UI
         private readonly Dictionary<Type, UIPanel> _panelDictionary = new Dictionary<Type, UIPanel>();
         
         public bool HasOpenPanels => _panelStack.Count > 0;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void AutoCreate()
+        {
+            if (Instance == null)
+            {
+                var go = new GameObject("[UIManager]");
+                Instance = go.AddComponent<UIManager>();
+                DontDestroyOnLoad(go);
+            }
+        }
         
         private void Awake()
         {
@@ -44,6 +56,8 @@ namespace SunnysideIsland.UI
             
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            
+            DIContainer.Global.RegisterInstance<IUIManager>(this);
             
             InitializePanels();
         }
@@ -73,6 +87,15 @@ namespace SunnysideIsland.UI
             {
                 return panel as T;
             }
+            
+            var found = FindObjectOfType<T>();
+            if (found != null)
+            {
+                _panelDictionary[type] = found;
+                return found;
+            }
+            
+            Debug.LogWarning($"[UIManager] Panel {typeof(T).Name} not found!");
             return null;
         }
         

@@ -175,6 +175,13 @@ namespace SunnysideIsland.Building
 
         private void OnBuildingPlaceConfirm(BuildingPlaceConfirmEvent evt)
         {
+            // Campfire는 BuildingPrefab이 없으므로 예외 처리
+            if (evt.BuildingId.ToLower() == "campfire")
+            {
+                Debug.Log("[BuildingSystem] Campfire placement confirmed (handled by CampfirePlacer)");
+                return;
+            }
+            
             var buildingData = _buildingDatabase?.GetBuilding(evt.BuildingId);
             if (buildingData != null && _placer != null)
             {

@@ -7,6 +7,7 @@ namespace SunnysideIsland.Pool
     public interface IPoolManager
     {
         ObjectPool GetPool(string poolName);
+        ObjectPool CreatePool(string poolName, GameObject prefab, int initialSize = -1, int maxSize = -1);
         GameObject Spawn(string poolName);
         GameObject Spawn(string poolName, Vector3 position, Quaternion rotation);
         T Spawn<T>(string poolName) where T : Component;
@@ -14,6 +15,7 @@ namespace SunnysideIsland.Pool
         void DespawnAll(string poolName);
     }
 
+    [DefaultExecutionOrder(-100)]
     public class PoolManager : MonoBehaviour, IPoolManager
     {
         public static PoolManager Instance { get; private set; }

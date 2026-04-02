@@ -29,6 +29,8 @@ namespace SunnysideIsland.Building
 
         [Header("=== Campfire Prefab ===")]
         [SerializeField] private GameObject _campfirePrefab;
+        [Tooltip("생성된 Campfire의 스케일")]
+        [SerializeField] private Vector3 _campfireScale = Vector3.one;
 
         [Header("=== Input ===")]
         [SerializeField] private InputActionAsset _inputActions;
@@ -98,6 +100,7 @@ namespace SunnysideIsland.Building
             _clickAction?.Enable();
             _pointAction?.Enable();
             _cancelAction?.Enable();
+            EventBus.Subscribe<BuildingPlaceConfirmEvent>(OnBuildingPlaceConfirm);
         }
 
         private void OnDisable()
@@ -105,6 +108,37 @@ namespace SunnysideIsland.Building
             _clickAction?.Disable();
             _pointAction?.Disable();
             _cancelAction?.Disable();
+            EventBus.Unsubscribe<BuildingPlaceConfirmEvent>(OnBuildingPlaceConfirm);
+        }
+
+        private void OnBuildingPlaceConfirm(BuildingPlaceConfirmEvent evt)
+        {
+            if (evt.BuildingId.ToLower() != "campfire") return;
+
+            Vector3 worldPos = _groundTilemap.GetCellCenterWorld(evt.GridPosition);
+            CreateCampfireAt(worldPos);
+        }
+
+        private void CreateCampfireAt(Vector3 position)
+        {
+            if (_campfirePrefab == null)
+            {
+                Debug.LogError("[CampfirePlacer] Campfire prefab not assigned");
+                return;
+            }
+
+            GameObject campfire;
+            if (_buildingParent != null)
+            {
+                campfire = Instantiate(_campfirePrefab, position, Quaternion.identity, _buildingParent);
+            }
+            else
+            {
+                campfire = Instantiate(_campfirePrefab, position, Quaternion.identity);
+            }
+
+            campfire.transform.localScale = _campfireScale;
+            Debug.Log($"[CampfirePlacer] Campfire created at {position} with scale {_campfireScale}");
         }
 
         /// <summary>
@@ -252,8 +286,6 @@ namespace SunnysideIsland.Building
 
         private void TryPlaceCampfire()
         {
-            Debug.Log($"[CampfirePlacer] TryPlaceCampfire called. _canPlace: {_canPlace}, _placementFailReason: {_placementFailReason}");
-            
             if (!_canPlace)
             {
                 if (!string.IsNullOrEmpty(_placementFailReason))
@@ -263,98 +295,19 @@ namespace SunnysideIsland.Building
                 return;
             }
 
-            // 배치 시작
-            Debug.Log("[CampfirePlacer] Starting PlaceCampfireSequence...");
-            StartCoroutine(PlaceCampfireSequence());
-        }
-
-        private IEnumerator PlaceCampfireSequence()
-        {
-            _isInPlacementMode = false;
-
-            // Preview 제거
-            if (_previewObject != null)
-            {
-                Destroy(_previewObject);
-                _previewObject = null;
-            }
-
-            // Player 위치 이동
-            if (_playerTransform != null)
-            {
-                Vector3 targetPos = _groundTilemap.GetCellCenterWorld(_currentGridPosition);
-                // Player를 타겟 위치로 이동 (필요시 NavMesh 사용)
-            }
-
-            // Hammer 애니메이션 2회
-            Debug.Log($"[CampfirePlacer] PlayerAnimator: {(_playerAnimator != null ? "Found" : "NULL")}");
-            if (_playerAnimator != null)
-            {
-                Debug.Log("[CampfirePlacer] Starting Hammer animation...");
-                for (int i = 0; i < 2; i++)
-                {
-                    _playerAnimator.SetTrigger(AnimHammer);
-                    Debug.Log($"[CampfirePlacer] Hammer trigger set ({i + 1}/2)");
-
-                    // 애니메이션 완료 대기
-                    yield return new WaitForSeconds(0.5f);
-
-                    int waitFrames = 0;
-                    while (_playerAnimator.GetCurrentAnimatorStateInfo(0).IsName("hamering"))
-                    {
-                        waitFrames++;
-                        yield return null;
-                    }
-                    Debug.Log($"[CampfirePlacer] Hammer animation ended (waited {waitFrames} frames)");
-                }
-            }
-            else
-            {
-                Debug.Log("[CampfirePlacer] No PlayerAnimator - skipping animation");
-                // Animator 없으면 딜레이만
-                yield return new WaitForSeconds(1f);
-            }
-
-            // Campfire Base 생성
-            CreateCampfireBase();
-
-            // UI 닫기
-            EventBus.Publish(new BuildingPlacedEvent
-            {
-                BuildingId = "campfire",
-                Position = _groundTilemap.GetCellCenterWorld(_currentGridPosition)
+            // 직접 생성 대신 BuildingSystem과 동일한 이벤트 발행
+            // 이를 통해 PlayerController가 측면으로 이동하여 망치질을 시작함
+            EventBus.Publish(new BuildingPlaceRequestedEvent 
+            { 
+                BuildingId = "campfire", 
+                GridPosition = _currentGridPosition 
             });
+
+            // 프리뷰 제거 및 모드 종료
+            Cleanup();
         }
 
-        private void CreateCampfireBase()
-        {
-            if (_campfirePrefab == null)
-            {
-                Debug.LogError("[CampfirePlacer] Campfire prefab not assigned");
-                return;
-            }
-
-            Vector3 worldPosition = _groundTilemap.GetCellCenterWorld(_currentGridPosition);
-
-            GameObject campfireGO = Instantiate(_campfirePrefab, worldPosition, Quaternion.identity);
-            campfireGO.name = "Campfire";
-
-            if (_buildingParent != null)
-            {
-                campfireGO.transform.SetParent(_buildingParent);
-            }
-
-            // Campfire 컴포넌트 설정
-            Campfire campfire = campfireGO.GetComponent<Campfire>();
-            if (campfire == null)
-            {
-                campfire = campfireGO.AddComponent<Campfire>();
-            }
-
-            Debug.Log($"[CampfirePlacer] Campfire base placed at {_currentGridPosition}");
-
-            Debug.Log("[CampfirePlacer] 모닥불 틀을 만들었습니다. 불을 붙이려면 나무 2개가 필요합니다.");
-        }
+        // 기존의 PlaceCampfireSequence와 CreateCampfireBase는 시스템 이벤트가 처리하므로 삭제 가능 (또는 주석 처리)
 
         private void CancelPlacement()
         {

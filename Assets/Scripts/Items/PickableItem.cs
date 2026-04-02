@@ -1,6 +1,8 @@
 using UnityEngine;
 using SunnysideIsland.Events;
 using SunnysideIsland.Inventory;
+using SunnysideIsland.Pool;
+using DI;
 
 namespace SunnysideIsland.Items
 {
@@ -9,19 +11,35 @@ namespace SunnysideIsland.Items
         [Header("=== Settings ===")]
         [SerializeField] private string _itemId = "wood";
         [SerializeField] private int _quantity = 1;
+        [SerializeField] private string _poolName = "Wood"; // 풀 이름 (기본값 Wood)
         
         public string ItemId => _itemId;
         public int Quantity => _quantity;
+
+        [Inject] private IInventorySystem _inventory;
+        [Inject] private IPoolManager _poolManager;
         
+        private void Start()
+        {
+            DIContainer.Inject(this);
+        }
+
         public void PickUp()
         {
-            var inventory = Object.FindObjectOfType<InventorySystem>();
-            if (inventory != null)
+            if (_inventory != null)
             {
-                bool added = inventory.AddItem(_itemId, _quantity);
+                bool added = _inventory.AddItem(_itemId, _quantity);
                 if (added)
                 {
-                    Destroy(gameObject);
+                    // 오브젝트 풀링 반환
+                    if (_poolManager != null && _poolManager.GetPool(_poolName) != null)
+                    {
+                        _poolManager.Despawn(_poolName, gameObject);
+                    }
+                    else
+                    {
+                        Destroy(gameObject);
+                    }
                 }
                 else
                 {
@@ -30,7 +48,7 @@ namespace SunnysideIsland.Items
             }
             else
             {
-                Debug.LogWarning("[PickableItem] No InventorySystem found");
+                Debug.LogWarning("[PickableItem] No InventorySystem injected");
             }
         }
     }

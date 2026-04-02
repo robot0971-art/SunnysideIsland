@@ -7,6 +7,7 @@ using SunnysideIsland.Farming;
 using SunnysideIsland.GameData;
 using SunnysideIsland.Items;
 using SunnysideIsland.UI;
+using SunnysideIsland.Pool;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -46,8 +47,23 @@ namespace SunnysideIsland.Player
         [SerializeField] private InputActionAsset _inputActions;
         private InputAction _moveAction;
 
-        [Inject] private IUIManager _uiManager;
+        [Inject(Optional = true)] private IUIManager _uiManager;
         [Inject(Optional = true)] private BuildingSystem _buildingSystem;
+        [Inject(Optional = true)] private ICropSelectionSystem _cropSelectionSystem;
+        [Inject(Optional = true)] private FarmingManager _farmingManager;
+        [Inject(Optional = true)] private Grid _grid;
+
+        private IUIManager UIManager
+        {
+            get
+            {
+                if (_uiManager == null)
+                {
+                    DIContainer.TryResolve(out _uiManager);
+                }
+                return _uiManager;
+            }
+        }
 
         private Vector2 _moveDirection;
         private Vector2 _facingDirection = Vector2.down;
@@ -85,8 +101,6 @@ namespace SunnysideIsland.Player
         [SerializeField] private GameObject _plotPrefab;
 
         [SerializeField] private LayerMask _groundLayer;
-
-        [SerializeField] private CropData _potatoData;
         public string SaveKey => "Player";
 
         private void Awake()
@@ -97,11 +111,6 @@ namespace SunnysideIsland.Player
 
             _rb.gravityScale = 0;
             _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-
-            if (_buildingSystem == null)
-            {
-                _buildingSystem = FindObjectOfType<SunnysideIsland.Building.BuildingSystem>();
-            }
 
             if (_inputActions != null)
             {
@@ -123,19 +132,13 @@ namespace SunnysideIsland.Player
 
         private void Start()
         {
+            // DI 주입 실행
             DIContainer.Inject(this);
-
 
             if (_navMeshAgent != null)
             {
                 _navMeshAgent.updateRotation = false;
                 _navMeshAgent.updateUpAxis = false;
-            }
-
-
-            if (_buildingSystem == null)
-            {
-                _buildingSystem = FindObjectOfType<SunnysideIsland.Building.BuildingSystem>();
             }
 
             EventBus.Subscribe<BuildingPlaceRequestedEvent>(OnBuildingPlaceRequested);
@@ -147,14 +150,10 @@ namespace SunnysideIsland.Player
 
             if (!_canMove) return;
 
-            // Poll for swimming since OnTriggerEnter might fail due to collision matrix or tilemap settings
-            // OverlapCircle checks a small area around the player for more stability than OverlapPoint
-
             float checkRadius = 0.2f;
             bool isOverSea = Physics2D.OverlapCircle(transform.position, checkRadius, _seaLayer) != null;
             bool isOverGround = Physics2D.OverlapCircle(transform.position, checkRadius, _groundLayer) != null;
 
-            // Determine if swimming: must be over sea, and not standing on solid ground
             bool shouldSwim = isOverSea && !isOverGround;
 
             if (shouldSwim && !_isSwimming) SetSwimming(true);
@@ -199,12 +198,10 @@ namespace SunnysideIsland.Player
                 _canMove = true;
                 _pendingBuildingData = null;
 
-
                 if (_navMeshAgent != null && _navMeshAgent.isOnNavMesh)
                 {
                     _navMeshAgent.ResetPath();
                 }
-
 
                 _rb.linearVelocity = Vector2.zero;
                 _moveDirection = Vector2.zero;
@@ -237,22 +234,33 @@ namespace SunnysideIsland.Player
 
             _isSprinting = Input.GetKey(KeyCode.LeftShift) && !_isRolling;
 
-            // 수영 중에는 구르기 금지
             if (Input.GetKeyDown(KeyCode.Space) && CanRoll() && !_isSwimming)
                 Roll();
 
             if (Input.GetKeyDown(KeyCode.I))
             {
-                if (_uiManager != null)
+                Debug.Log($"[PlayerController] I key pressed. UIManager resolved: {UIManager != null}");
+                var uiMgr = UIManager;
+                if (uiMgr != null)
                 {
-                    var inventoryPanel = _uiManager.GetPanel<SunnysideIsland.UI.Inventory.InventoryPanel>();
+                    var inventoryPanel = uiMgr.GetPanel<SunnysideIsland.UI.Inventory.InventoryPanel>();
+                    Debug.Log($"[PlayerController] InventoryPanel is null: {inventoryPanel == null}");
                     if (inventoryPanel != null)
                     {
+                        Debug.Log($"[PlayerController] InventoryPanel.IsOpen: {inventoryPanel.IsOpen}");
                         if (inventoryPanel.IsOpen)
-                            _uiManager.ClosePanel<SunnysideIsland.UI.Inventory.InventoryPanel>();
+                            uiMgr.ClosePanel<SunnysideIsland.UI.Inventory.InventoryPanel>();
                         else
-                            _uiManager.OpenPanel<SunnysideIsland.UI.Inventory.InventoryPanel>();
+                            uiMgr.OpenPanel<SunnysideIsland.UI.Inventory.InventoryPanel>();
                     }
+                    else
+                    {
+                        Debug.LogError("[PlayerController] InventoryPanel not found in UIManager!");
+                    }
+                }
+                else
+                {
+                    Debug.LogError("[PlayerController] UIManager is null! DI resolution failed.");
                 }
             }
 
@@ -264,7 +272,6 @@ namespace SunnysideIsland.Player
                 }
             }
 
-            // 통합 상호작용 (E키) - 수영 중이 아닐 때만 실행
             if (Input.GetKeyDown(KeyCode.E) && !_isSwimming)
             {
                 bool workDone = TryInteract();
@@ -289,9 +296,7 @@ namespace SunnysideIsland.Player
             else if (_isSprinting) targetSpeed = _sprintSpeed;
 
             Vector2 moveDir = _moveDirection;
-
             Vector2 velocity = moveDir * targetSpeed;
-
 
             if (velocity.sqrMagnitude > 0.01f)
             {
@@ -304,7 +309,6 @@ namespace SunnysideIsland.Player
             }
         }
 
-        // --- Swim Logic ---
         private void OnTriggerEnter2D(Collider2D collision)
         {
             if (((1 << collision.gameObject.layer) & _seaLayer) != 0)
@@ -328,15 +332,21 @@ namespace SunnysideIsland.Player
                 _animator.SetBool(AnimSwimming, enable);
         }
 
-        // --- Interaction Logic (기존 로직 유지) ---
         private void TryCreatePlot()
         {
-            // 플레이어가 바라보는 방향 앞에 Plot 생성
             Vector2 origin = (Vector2)transform.position + new Vector2(0, 0.1f);
-            Vector2 targetPos = origin + _facingDirection * 1.0f;
+            Vector2 rawTargetPos = origin + _facingDirection * 1.0f;
+            Vector2 targetPos = rawTargetPos;
 
-            Collider2D treeCheck = Physics2D.OverlapCircle(targetPos, 0.5f, _treeLayer);
-            Collider2D harvestCheck = Physics2D.OverlapCircle(targetPos, 0.5f, _harvestLayer);
+            // Grid Snapping
+            if (_grid != null)
+            {
+                Vector3Int cellPos = _grid.WorldToCell(rawTargetPos);
+                targetPos = _grid.GetCellCenterWorld(cellPos);
+            }
+
+            Collider2D treeCheck = Physics2D.OverlapCircle(targetPos, 0.4f, _treeLayer);
+            Collider2D harvestCheck = Physics2D.OverlapCircle(targetPos, 0.4f, _harvestLayer);
             if (treeCheck != null || harvestCheck != null) return;
 
             Collider2D groundCheck = Physics2D.OverlapPoint(targetPos, _groundLayer);
@@ -371,6 +381,42 @@ namespace SunnysideIsland.Player
             float radius = 0.8f;
             float distance = 1.5f;
 
+            Collider2D[] nearbyInteractables = Physics2D.OverlapCircleAll(origin, 2.0f, _interactableLayer);
+            Campfire nearestCampfire = null;
+            foreach (var col in nearbyInteractables)
+            {
+                if (col.TryGetComponent(out Campfire cf))
+                {
+                    nearestCampfire = cf;
+                    break;
+                }
+            }
+            bool isNearCampfire = nearestCampfire != null;
+
+            RaycastHit2D hit = Physics2D.CircleCast(origin, 0.4f, _facingDirection, 2.0f, _interactableLayer);
+            IInteractable targetInteractable = null;
+
+            if (hit.collider != null)
+            {
+                hit.collider.TryGetComponent(out targetInteractable);
+            }
+            else if (isNearCampfire)
+            {
+                targetInteractable = nearestCampfire;
+            }
+
+            if (targetInteractable != null)
+            {
+                if (targetInteractable.CanInteract())
+                {
+                    targetInteractable.Interact();
+                    return true;
+                }
+                if (isNearCampfire) return true;
+            }
+
+            if (isNearCampfire) return true;
+
             RaycastHit2D[] harvestHits = Physics2D.CircleCastAll(origin, radius, _facingDirection, distance, _harvestLayer);
             if (harvestHits.Length > 0)
             {
@@ -395,42 +441,37 @@ namespace SunnysideIsland.Player
                     }
                 }
             }
-
-            RaycastHit2D hit = Physics2D.Raycast(origin, _facingDirection, 1.0f, _interactableLayer);
-            if (hit.collider != null)
+            
+            RaycastHit2D farmHit = Physics2D.Raycast(origin, _facingDirection, 1.0f, _interactableLayer);
+            if (farmHit.collider != null && farmHit.collider.TryGetComponent(out FarmPlot plot))
             {
-                // IInteractable 체크 (Campfire, NPC, 상자 등)
-                if (hit.collider.TryGetComponent(out IInteractable interactable))
+                if (plot.IsEmpty)
                 {
-                    if (interactable.CanInteract())
+                    var selectedCrop = _cropSelectionSystem?.SelectedCrop;
+                    if (selectedCrop != null)
                     {
-                        interactable.Interact();
-                        return true;
-                    }
-                }
-                
-                // FarmPlot 로직 유지
-                if (hit.collider.TryGetComponent(out FarmPlot plot))
-                {
-                    if (plot.IsEmpty)
-                    {
-                        plot.Plant("potato", _potatoData);
+                        plot.Plant(selectedCrop.seedItemId, selectedCrop);
                     }
                     else
                     {
-                        if (plot.IsReady)
-                        {
-                            plot.Harvest();
-                            _animator.SetTrigger("Harvest");
-                        }
-                        else
-                        {
-                            ExecuteWatering();
-                        }
+                        Debug.LogWarning("[PlayerController] No crop selected");
                     }
-                    return true;
                 }
+                else
+                {
+                    if (plot.IsReady)
+                    {
+                        plot.Harvest();
+                        _animator.SetTrigger("Harvest");
+                    }
+                    else
+                    {
+                        ExecuteWatering();
+                    }
+                }
+                return true;
             }
+            
             return false;
         }
 
@@ -464,14 +505,26 @@ namespace SunnysideIsland.Player
                 yield return new WaitForSeconds(delay);
             }
 
-            if (_plotPrefab != null)
+            string poolName = "FarmPlot";
+            GameObject newPlot = null;
+
+            if (PoolManager.Instance != null)
             {
-                GameObject newPlot = Instantiate(_plotPrefab, new Vector3(spawnPos.x, spawnPos.y, 0), Quaternion.identity);
-                if (newPlot.TryGetComponent(out SunnysideIsland.Farming.FarmPlot plotScript))
+                if (PoolManager.Instance.GetPool(poolName) == null)
                 {
-                    var manager = FindObjectOfType<SunnysideIsland.Farming.FarmingManager>();
-                    if (manager != null) manager.RegisterPlot(plotScript);
+                    PoolManager.Instance.CreatePool(poolName, _plotPrefab, 20, 100);
                 }
+                newPlot = PoolManager.Instance.Spawn(poolName, new Vector3(spawnPos.x, spawnPos.y, 0), Quaternion.identity);
+            }
+            else
+            {
+                newPlot = Instantiate(_plotPrefab, new Vector3(spawnPos.x, spawnPos.y, 0), Quaternion.identity);
+            }
+
+            if (newPlot != null && newPlot.TryGetComponent(out FarmPlot plotScript))
+            {
+                plotScript.Clear();
+                if (_farmingManager != null) _farmingManager.RegisterPlot(plotScript);
             }
         }
 
@@ -502,7 +555,6 @@ namespace SunnysideIsland.Player
 
         private void UpdateAnimations()
         {
-            // _rb.MovePosition()으로 이동할 경우 _rb.linearVelocity가 0으로 남으므로 _moveDirection 기반으로 변경
             Vector2 animVelocity = _isRolling ? _rb.linearVelocity.normalized : _moveDirection;
 
             _animator.SetFloat(AnimMoveX, animVelocity.x);
@@ -513,7 +565,6 @@ namespace SunnysideIsland.Player
             if (_moveDirection.x != 0)
                 _spriteRenderer.flipX = _moveDirection.x < 0;
 
-            // 수영 중에는 Walking 애니메이션을 재생하지 않음
             bool isMoving = !_isSwimming && animVelocity.sqrMagnitude > 0.01f;
             _animator.SetBool(AnimIsMoving, isMoving);
             _animator.SetBool(AnimIsSprinting, _isSprinting && !_isSwimming);
@@ -550,21 +601,16 @@ namespace SunnysideIsland.Player
             float width = _pendingBuildingData != null ? _pendingBuildingData.Size.Width : 1f;
             float height = _pendingBuildingData != null ? _pendingBuildingData.Size.Height : 1f;
 
-            // 건물의 대략적인 중심(타일맵은 1x1)
             Vector3 buildingCenter = new Vector3(evt.GridPosition.x + width * 0.5f, evt.GridPosition.y + height * 0.5f, 0);
 
             Vector3 dirToCenter = (buildingCenter - transform.position).normalized;
-            if (dirToCenter == Vector3.zero) dirToCenter = Vector3.down; // Fallback
+            if (dirToCenter == Vector3.zero) dirToCenter = Vector3.down;
 
-            // 중심에서 직사각형 가장자리까지의 정확한 거리를 계산합니다.
             float rayDistX = (dirToCenter.x != 0) ? (width * 0.5f) / Mathf.Abs(dirToCenter.x) : float.MaxValue;
             float rayDistY = (dirToCenter.y != 0) ? (height * 0.5f) / Mathf.Abs(dirToCenter.y) : float.MaxValue;
             float boxRadius = Mathf.Min(rayDistX, rayDistY);
 
-            //경계 경계에 정확히 서도록 여백을 추가합니다.
             float safeRadius = boxRadius + 0.3f;
-
-            // 스탠드 위치는 건물에서 약간 바깥쪽, 플레이어가 접근하는 쪽입니다.
             _buildTargetPosition = buildingCenter - dirToCenter * safeRadius;
 
             _facingDirection = dirToCenter;
@@ -585,14 +631,10 @@ namespace SunnysideIsland.Player
             while (useNavMesh ? (_navMeshAgent.pathPending || _navMeshAgent.remainingDistance > 0.1f) : Vector3.Distance(transform.position, _buildTargetPosition) > 0.1f)
             {
                 Vector3 direction = (_buildTargetPosition - transform.position).normalized;
-
-
                 if (!useNavMesh)
                 {
                     _rb.linearVelocity = direction * _moveSpeed;
                 }
-                // 이동 중에도 클릭 방향을 유지 (flip은 OnBuildingPlaceRequested에서 이미 설정됨)
-
                 yield return null;
             }
 
@@ -603,13 +645,13 @@ namespace SunnysideIsland.Player
             else
                 _rb.linearVelocity = Vector2.zero;
 
-            for (int i = 0; i < 4; i++)
+            int maxHammerCount = (_pendingBuildingData != null && _pendingBuildingData.BuildingId == "campfire") ? 2 : 4;
+
+            for (int i = 0; i < maxHammerCount; i++)
             {
                 _animator.SetTrigger(AnimHammer);
                 _hammerCount++;
-
                 yield return new WaitForSeconds(0.5f);
-
                 while (_animator.GetCurrentAnimatorStateInfo(0).IsName("hamering"))
                 {
                     yield return null;

@@ -14,8 +14,8 @@ namespace SunnysideIsland.Core
     public class GameManager : MonoBehaviour
     {
         [Header("=== Settings ===")]
-        [SerializeField] private string _gameSceneName = "Game";
-        [SerializeField] private string _mainMenuSceneName = "MainMenu";
+        [SerializeField] private string _gameSceneName = "MainGame";
+        [SerializeField] private string _mainMenuSceneName = "MainGame";
         
         [Header("=== References ===")]
         [SerializeField] private TimeManager _timeManager;

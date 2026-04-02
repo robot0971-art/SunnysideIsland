@@ -53,6 +53,7 @@ namespace SunnysideIsland.Inventory
         private void Awake()
         {
             InitializeSlots();
+            DI.DIContainer.Global.RegisterInstance<IInventorySystem>(this);
         }
 
 

@@ -17,8 +17,6 @@ namespace SunnysideIsland.Building
     {
         [Header("=== Visuals ===")]
         [SerializeField] private SpriteRenderer _baseRenderer;
-        [SerializeField] private CampfireParticles _campfireParticles; // 파티클 시스템
-        [SerializeField] private CampfireParticleConnector _particleConnector; // 향상된 파티클 커넥터 (선택적)
         
         [Header("=== Scale Settings ===")]
         [Tooltip("베이스(바닥 타일)의 스케일 (게임 시작 시 적용)")]
@@ -67,18 +65,20 @@ namespace SunnysideIsland.Building
         private float _flickerTimer = 0f;
         private float _baseIntensity;
         private bool _isRegistered = false;
+
+        [DI.Inject] private SunnysideIsland.Inventory.IInventorySystem _inventory;
         
         private void Awake()
         {
+            // DI 주입 실행
+            DI.DIContainer.Inject(this);
+
             // 컴포넌트 참조 찾기 (Inspector에서 설정되지 않은 경우)
             if (_baseRenderer == null)
                 _baseRenderer = GetComponent<SpriteRenderer>();
-            if (_campfireParticles == null)
-                _campfireParticles = GetComponentInChildren<CampfireParticles>();
+            
             if (_campfireLight == null)
                 _campfireLight = GetComponentInChildren<Light2D>();
-            if (_particleConnector == null)
-                _particleConnector = GetComponent<CampfireParticleConnector>();
             
             // 초기 상태 설정
             SetState(CampfireState.Unlit);
@@ -146,11 +146,8 @@ namespace SunnysideIsland.Building
         {
             if (State == CampfireState.Lit)
             {
-                // 조명 깜빡임 (Particle Connector가 없을 때만)
-                if (_particleConnector == null)
-                {
-                    UpdateLightFlicker();
-                }
+                // 조명 깜빡임
+                UpdateLightFlicker();
                 
                 // 시간 체크
                 UpdateBurnTime();
@@ -227,27 +224,39 @@ namespace SunnysideIsland.Building
         /// </summary>
         private void TryLight()
         {
-            // 인벤토리에서 나무 2개 체크
-            var inventory = FindObjectOfType<InventorySystem>();
-            if (inventory == null)
+            // 인벤토리 체크 (주입된 필드 사용)
+            if (_inventory == null)
             {
-                Debug.Log("[Campfire] 인벤토리를 찾을 수 없습니다.");
+                Debug.LogError("[Campfire] InventorySystem을 찾을 수 없습니다!");
                 return;
             }
             
-            // 나무 아이템 ID 확인 (프로젝트 설정에 따라 조정)
-            string woodItemId = "wood";
+            // 나무 아이템 ID 확인
+            string woodId = "wood";
+            int currentWood = _inventory.CountItem(woodId);
             
-            if (inventory.CountItem(woodItemId) < _woodCost)
+            // 만약 소문자 "wood"로 못 찾았다면 "Wood"로도 시도
+            if (currentWood < _woodCost)
             {
-                Debug.Log($"[Campfire] 나무 {_woodCost}개가 필요합니다.");
+                currentWood = _inventory.CountItem("Wood");
+                if (currentWood >= _woodCost) woodId = "Wood";
+            }
+            
+            if (currentWood < _woodCost)
+            {
+                string msg = $"[Campfire] 점화 실패: 나무가 부족합니다. (필요: {_woodCost}, 보유: {currentWood})";
+                Debug.LogWarning(msg);
                 return;
             }
             
             // 나무 소모
-            if (inventory.RemoveItem(woodItemId, _woodCost))
+            if (_inventory.RemoveItem(woodId, _woodCost))
             {
                 LightFire();
+            }
+            else
+            {
+                Debug.LogError($"[Campfire] 아이템 소모에 실패했습니다: {woodId}");
             }
         }
         
@@ -298,9 +307,19 @@ namespace SunnysideIsland.Building
             
             if (_currentFireObject != null)
             {
+                Debug.Log($"[Campfire] Spawned object: {_currentFireObject.name}, Prefab: {(_currentFireObject.transform.parent?.name ?? "no parent")}");
+                
                 _currentFireObject.transform.SetParent(transform);
                 // 불꽃 스케일 적용
                 _currentFireObject.transform.localScale = _fireScale;
+                
+                // 파티클 시작
+                var particles = _currentFireObject.GetComponent<CampfireParticles>();
+                if (particles != null)
+                {
+                    particles.StartFire();
+                }
+                
                 Debug.Log("[Campfire] Fire spawned from pool and scale applied");
             }
         }
@@ -312,6 +331,13 @@ namespace SunnysideIsland.Building
         {
             if (_currentFireObject != null && PoolManager.Instance != null)
             {
+                // 파티클 정지
+                var particles = _currentFireObject.GetComponent<CampfireParticles>();
+                if (particles != null)
+                {
+                    particles.StopFire();
+                }
+                
                 PoolManager.Instance.Despawn(_firePoolName, _currentFireObject);
                 _currentFireObject = null;
                 Debug.Log("[Campfire] Fire returned to pool");
@@ -325,42 +351,17 @@ namespace SunnysideIsland.Building
         {
             State = newState;
             
-            // Particle Connector가 있으면 우선 사용, 없으면 기본 파티클 사용
-            if (_particleConnector != null)
+            // 오직 조명 제어와 Pool 기반 파티클만 사용
+            switch (State)
             {
-                switch (State)
-                {
-                    case CampfireState.Unlit:
-                    case CampfireState.BurnedOut:
-                        _particleConnector.StopAllEffects();
-                        if (_campfireLight != null) _campfireLight.intensity = 0f;
-                        break;
-                        
-                    case CampfireState.Lit:
-                        _particleConnector.StartAllEffects();
-                        if (_campfireLight != null) _campfireLight.intensity = _lightIntensity;
-                        break;
-                }
-            }
-            else
-            {
-                switch (State)
-                {
-                    case CampfireState.Unlit:
-                        _campfireParticles?.StopFire();
-                        if (_campfireLight != null) _campfireLight.intensity = 0f;
-                        break;
-                        
-                    case CampfireState.Lit:
-                        _campfireParticles?.StartFire();
-                        if (_campfireLight != null) _campfireLight.intensity = _lightIntensity;
-                        break;
-                        
-                    case CampfireState.BurnedOut:
-                        _campfireParticles?.StopFire();
-                        if (_campfireLight != null) _campfireLight.intensity = 0f;
-                        break;
-                }
+                case CampfireState.Unlit:
+                case CampfireState.BurnedOut:
+                    if (_campfireLight != null) _campfireLight.intensity = 0f;
+                    break;
+                    
+                case CampfireState.Lit:
+                    if (_campfireLight != null) _campfireLight.intensity = _lightIntensity;
+                    break;
             }
         }
         

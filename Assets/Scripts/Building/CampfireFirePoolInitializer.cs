@@ -30,10 +30,10 @@ namespace SunnysideIsland.Building
                 if (_campfireFirePrefab == null)
                     _campfireFirePrefab = Resources.Load<GameObject>("Building/Campfire_Fire");
                 
-                if (_campfireFirePrefab != null)
-                {
-                    Debug.Log($"[CampfireFirePoolInitializer] Loaded Campfire_Fire prefab from Resources: {_campfireFirePrefab.name}");
-                }
+            if (_campfireFirePrefab != null)
+            {
+                Debug.Log($"[CampfireFirePoolInitializer] Loaded prefab: {_campfireFirePrefab.name}");
+            }
             }
             
             if (_campfireFirePrefab == null)

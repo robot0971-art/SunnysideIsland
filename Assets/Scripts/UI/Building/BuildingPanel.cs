@@ -289,7 +289,7 @@ namespace SunnysideIsland.UI.Building
                 var card = child.GetComponent<BuildingCard>();
                 if (card != null)
                 {
-                    card.Setup(buildingData, _defaultHousePrefab, _bigHousePrefab, _escapeBoatPrefab);
+                    card.Setup(buildingData, _defaultHousePrefab, _bigHousePrefab, _escapeBoatPrefab, _campfireIconPrefab);
                     card.OnClicked += OnCardClicked;
                 }
                 else

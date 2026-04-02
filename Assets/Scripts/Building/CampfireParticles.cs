@@ -52,7 +52,8 @@ namespace SunnysideIsland.Building
                 _particleSystem = gameObject.AddComponent<ParticleSystem>();
             }
             
-            ConfigureParticles();
+            // 초기 상태는 정지
+            StopFire();
         }
         
         /// <summary>
@@ -129,29 +130,8 @@ namespace SunnysideIsland.Building
             sizeCurve.AddKey(1f, 0.1f);
             sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, sizeCurve);
             
-            // Renderer 설정
-            renderer.renderMode = ParticleSystemRenderMode.Billboard;
-            renderer.sortMode = ParticleSystemSortMode.OldestInFront;
-            
-            // 자동 텍스처 및 머티리얼 생성
-            if (renderer.material == null || renderer.material.name == "Default-Material")
-            {
-                Texture2D particleTexture;
-                if (_useFlameShape)
-                {
-                    particleTexture = ParticleTextureGenerator.CreateFlameTexture(64);
-                }
-                else
-                {
-                    particleTexture = ParticleTextureGenerator.CreateCircleTexture(64, true);
-                }
-                renderer.material = ParticleTextureGenerator.CreateSimpleParticleMaterial(particleTexture);
-            }
-            
-            // 초기 상태는 정지
-            StopFire();
-            
-            Debug.Log("[CampfireParticles] Particles configured with " + (_useFlameShape ? "flame" : "circle") + " shape");
+            // Renderer 설정은 인스펙터에서 설정한 값 사용 (코드에서 덮어쓰지 않음)
+            // Material과 Texture는 프리팹에 설정된 값을 사용
         }
         
         /// <summary>

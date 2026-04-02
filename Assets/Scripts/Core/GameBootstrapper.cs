@@ -18,7 +18,7 @@ namespace SunnysideIsland.Core
         private static bool _isInitialized;
 
         [Header("=== Settings ===")]
-        [SerializeField] private string _initialSceneName = "MainMenu";
+        [SerializeField] private string _initialSceneName = "MainGame";
         [SerializeField] private float _minimumLoadingTime = 1f;
         [SerializeField] private bool _showLoadingScreen = true;
 

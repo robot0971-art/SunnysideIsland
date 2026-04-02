@@ -45,7 +45,7 @@ namespace SunnysideIsland.Pool
         private GameObject CreateNewObject()
         {
             var obj = Object.Instantiate(_prefab, _parent);
-            obj.name = $"{_prefab.name}_pooled";
+            obj.name = _prefab.name;
             
             var poolable = obj.GetComponent<PoolableObject>();
             if (poolable != null)

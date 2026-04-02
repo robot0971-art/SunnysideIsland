@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using SunnysideIsland.Events;
 using SunnysideIsland.Inventory;
+using SunnysideIsland.Pool;
+using DI;
 
 namespace SunnysideIsland.Environment
 {
@@ -10,17 +12,14 @@ namespace SunnysideIsland.Environment
         [Header("=== Settings ===")]
         [SerializeField] private GameObject _woodPrefab;
         [SerializeField] private float _dropRadius = 0.5f;
+        [SerializeField] private string _woodPoolName = "Wood";
         
-        private IInventorySystem _inventorySystem;
+        [Inject] private IInventorySystem _inventorySystem;
+        [Inject] private IPoolManager _poolManager;
         
         private void Start()
         {
-            _inventorySystem = GetComponent<IInventorySystem>();
-            if (_inventorySystem == null)
-            {
-                _inventorySystem = FindObjectOfType<InventorySystem>();
-            }
-            
+            DIContainer.Inject(this);
             EventBus.Subscribe<TreeChoppedEvent>(OnTreeChopped);
         }
         
@@ -31,18 +30,30 @@ namespace SunnysideIsland.Environment
         
         private void OnTreeChopped(TreeChoppedEvent evt)
         {
-            // 바닥에 Wood 아이템만 생성 (인벤토리 추가는 PickableItem이 처리)
-            if (_woodPrefab != null)
+            if (_woodPrefab == null) return;
+
+            // 풀이 없으면 생성
+            if (_poolManager != null && _poolManager.GetPool(_woodPoolName) == null)
             {
-                for (int i = 0; i < evt.WoodAmount; i++)
+                _poolManager.CreatePool(_woodPoolName, _woodPrefab, 30, 100);
+            }
+
+            for (int i = 0; i < evt.WoodAmount; i++)
+            {
+                Vector2 randomCircle = Random.insideUnitCircle * _dropRadius;
+                Vector3 spawnPos = evt.TreePosition + new Vector3(randomCircle.x, randomCircle.y, 0);
+                
+                if (_poolManager != null)
                 {
-                    Vector2 randomCircle = Random.insideUnitCircle * _dropRadius;
-                    Vector3 spawnPos = evt.TreePosition + new Vector3(randomCircle.x, randomCircle.y, 0);
+                    _poolManager.Spawn(_woodPoolName, spawnPos, Quaternion.identity);
+                }
+                else
+                {
                     Instantiate(_woodPrefab, spawnPos, Quaternion.identity);
                 }
-                
-                Debug.Log($"[WoodDropManager] Dropped {evt.WoodAmount} wood on ground");
             }
+            
+            Debug.Log($"[WoodDropManager] Dropped {evt.WoodAmount} wood from pool");
         }
     }
 }

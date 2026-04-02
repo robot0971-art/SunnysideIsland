@@ -43,8 +43,10 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 1
     BuildingPrefab: {fileID: 0}
-  - BuildingId: Hut
-    BuildingName: "\uC624\uB450\uB9C9"
+    IconSprite: {fileID: 0}
+    IconScale: 1
+  - BuildingId: campfire
+    BuildingName: "\uBD88 \uD130 "
     Description: "\uB098\uBB34\uB85C \uC9C0\uC740 \uAC04\uB2E8\uD55C \uC9D1. \uD150\uD2B8\uBCF4\uB2E4
       \uD3B8\uC548\uD558\uB2E4."
     Category: 0
@@ -69,10 +71,12 @@ MonoBehaviour:
     TouristCapacity: 0
     DailyIncome: 0
     UnlocksAtQuest: []
-    UpgradeFrom: Tent
+    UpgradeFrom: campfire
     UpgradeTo: House
     IsUnlockedDefault: 0
-    BuildingPrefab: {fileID: 0}
+    BuildingPrefab: {fileID: 8925536611520010537, guid: dfec0458abbe1744d8c4a251c9f95275, type: 3}
+    IconSprite: {fileID: 6315770005435542194, guid: cb94885048ba13b45bdb5e36860e298a, type: 3}
+    IconScale: 0.8
   - BuildingId: House
     BuildingName: "\uC9D1"
     Description: "\uC81C\uB300\uB85C \uC9C0\uC740 \uC9D1. \uD55C \uAC00\uC871\uC774
@@ -105,6 +109,8 @@ MonoBehaviour:
     UpgradeTo: LargeHouse
     IsUnlockedDefault: 1
     BuildingPrefab: {fileID: 1216983113221114870, guid: 9528e523ef2f4cf40a54f3bdba850ba7, type: 3}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: LargeHouse
     BuildingName: "\uD070 \uC9D1"
     Description: "\uB113\uC740 2\uCE35 \uC9D1. \uC5EC\uB7EC \uAC00\uC871\uC774 \uC0B4
@@ -137,6 +143,8 @@ MonoBehaviour:
     UpgradeTo: Mansion
     IsUnlockedDefault: 1
     BuildingPrefab: {fileID: 2570175521707891072, guid: fab13c677fa93c9419a1350473315576, type: 3}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Mansion
     BuildingName: "\uC800\uD0DD"
     Description: "\uD638\uD654\uB85C\uC6B4 \uC800\uD0DD. \uC12C\uC5D0\uC11C \uAC00\uC7A5
@@ -176,6 +184,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Stall
     BuildingName: "\uB178\uC810"
     Description: "\uAC04\uB2E8\uD55C \uAC00\uD310\uB300. \uAE30\uBCF8\uC801\uC778
@@ -205,6 +215,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 1
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: GroceryStore
     BuildingName: "\uC2DD\uB8CC\uD488\uC810"
     Description: "\uC2E0\uC120\uD55C \uC2DD\uD488\uC744 \uD30C\uB294 \uAC00\uAC8C."
@@ -237,6 +249,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Blacksmith
     BuildingName: "\uB300\uC7A5\uAC04"
     Description: "\uBB34\uAE30\uC640 \uB3C4\uAD6C\uB97C \uB9CC\uB4E4\uACE0 \uD30C\uB294
@@ -273,6 +287,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Restaurant
     BuildingName: "\uC2DD\uB2F9"
     Description: "\uB9DB\uC788\uB294 \uC694\uB9AC\uB97C \uC81C\uACF5\uD558\uB294
@@ -306,6 +322,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Inn
     BuildingName: "\uC5EC\uAD00"
     Description: "\uC5EC\uD589\uC790\uAC00 \uBB35\uC744 \uC218 \uC788\uB294 \uC219\uC18C."
@@ -339,6 +357,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Market
     BuildingName: "\uC2DC\uC7A5"
     Description: "\uB2E4\uC591\uD55C \uC0C1\uD488\uC744 \uAC70\uB798\uD558\uB294
@@ -373,6 +393,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Dock
     BuildingName: "\uBD80\uB450"
     Description: "\uBC30\uAC00 \uC815\uBC15\uD560 \uC218 \uC788\uB294 \uC120\uCC29\uC7A5."
@@ -405,6 +427,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Lighthouse
     BuildingName: "\uB4F1\uB300"
     Description: "\uBC24\uC5D0 \uBE5B\uC744 \uBE44\uCD94\uC5B4 \uBC30\uB97C \uC778\uB3C4\uD55C\uB2E4."
@@ -441,6 +465,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Plaza
     BuildingName: "\uAD11\uC7A5"
     Description: "\uC8FC\uBBFC\uACFC \uAD00\uAD11\uAC1D\uC774 \uBAA8\uC774\uB294
@@ -473,6 +499,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Park
     BuildingName: "\uACF5\uC6D0"
     Description: "\uC544\uB984\uB2E4\uC6B4 \uC815\uC6D0\uACFC \uBCA4\uCE58\uAC00
@@ -506,6 +534,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: FestivalGround
     BuildingName: "\uCD95\uC81C\uC7A5"
     Description: "\uCD95\uC81C\uC640 \uC774\uBCA4\uD2B8\uB97C \uC5F4 \uC218 \uC788\uB294
@@ -540,6 +570,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: HotSpring_Inn
     BuildingName: "\uC628\uCC9C \uC5EC\uAD00"
     Description: "\uCC9C\uC5F0 \uC628\uCC9C\uC744 \uC990\uAE38 \uC218 \uC788\uB294
@@ -577,6 +609,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Resort_Hotel
     BuildingName: "\uB9AC\uC870\uD2B8 \uD638\uD154"
     Description: "\uC12C \uCD5C\uACE0\uC758 \uB7ED\uC154\uB9AC \uB9AC\uC870\uD2B8
@@ -616,6 +650,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: FarmPlot
     BuildingName: "\uBC2D"
     Description: "\uC791\uBB3C\uC744 \uC7AC\uBC30\uD560 \uC218 \uC788\uB294 \uBC2D."
@@ -643,6 +679,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 1
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Storage
     BuildingName: "\uC800\uC7A5\uACE0"
     Description: "\uC544\uC774\uD15C\uC744 \uBCF4\uAD00\uD560 \uC218 \uC788\uB294
@@ -673,6 +711,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: FishingSpot
     BuildingName: "\uB09A\uC2DC\uD130"
     Description: "\uB09A\uC2DC\uB97C \uD560 \uC218 \uC788\uB294 \uC790\uB9AC."
@@ -700,6 +740,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 1
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Farm_Tour
     BuildingName: "\uCCB4\uD5D8 \uB18D\uC7A5"
     Description: "\uAD00\uAD11\uAC1D\uC774 \uB18D\uC0AC\uB97C \uCCB4\uD5D8\uD560
@@ -733,6 +775,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Bench
     BuildingName: "\uBCA4\uCE58"
     Description: "\uC26C\uC5B4\uAC08 \uC218 \uC788\uB294 \uBCA4\uCE58."
@@ -761,6 +805,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 1
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: StreetLight
     BuildingName: "\uAC00\uB85C\uB4F1"
     Description: "\uBC24\uAE38\uC744 \uBC1D\uD600\uC8FC\uB294 \uAC00\uB85C\uB4F1."
@@ -790,6 +836,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 1
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: FlowerBed
     BuildingName: "\uAF43\uBC2D"
     Description: "\uC544\uB984\uB2E4\uC6B4 \uAF43\uC774 \uD53C\uC5B4\uC788\uB294
@@ -822,6 +870,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 1
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Fountain
     BuildingName: "\uBD84\uC218\uB300"
     Description: "\uC544\uB984\uB2E4\uC6B4 \uBD84\uC218\uB300."
@@ -854,9 +904,12 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: campfire
     BuildingName: "\uBAA8\uB2ED\uBD88"
-    Description: "\uBD88\uC744 \uBD99\uC774\uBA74 \uC624\uB79C \uC2DC\uAC04 \uB3D9\uC548 \uBD88\uC774 \uD0C0\uC625\uB2C8\uB2E4."
+    Description: "\uBD88\uC744 \uBD99\uC774\uBA74 \uC624\uB79C \uC2DC\uAC04 \uB3D9\uC548
+      \uBD88\uC774 \uD0C0\uC625\uB2C8\uB2E4."
     Category: 4
     Type: 4
     Size:
@@ -878,6 +931,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 1
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Watchtower
     BuildingName: "\uAC10\uC2DC\uD0D1"
     Description: "\uC8FC\uBCC0\uC744 \uAC10\uC2DC\uD560 \uC218 \uC788\uB294 \uD0D1."
@@ -910,6 +965,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Fence
     BuildingName: "\uB2F4\uC7A5"
     Description: "\uB9C8\uC744\uC744 \uBCF4\uD638\uD558\uB294 \uB2F4\uC7A5."
@@ -938,6 +995,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 1
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: StoneWall
     BuildingName: "\uC11D\uBCBD"
     Description: "\uD2BC\uD2BC\uD55C \uB3CC\uB85C \uC313\uC740 \uBCBD."
@@ -966,6 +1025,8 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 0
     BuildingPrefab: {fileID: 0}
+    IconSprite: {fileID: 0}
+    IconScale: 1
   - BuildingId: Boat
     BuildingName: "\uD0C8\uCD9C\uC6A9 \uBC30"
     Description: "\uC12C\uC744 \uD0C8\uCD9C\uD560 \uC218 \uC788\uB294 \uBC30. \uBC14\uB2F7\uAC00\uC5D0\uB9CC
@@ -992,3 +1053,5 @@ MonoBehaviour:
     UpgradeTo: 
     IsUnlockedDefault: 1
     BuildingPrefab: {fileID: 1708952839880366167, guid: eaa45036dacfa8840b171f421bd8dd73, type: 3}
+    IconSprite: {fileID: 0}
+    IconScale: 1

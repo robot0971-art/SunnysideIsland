@@ -33,7 +33,9 @@ namespace DI
         [Header("=== Production Systems ===")]
         [SerializeField] private InventorySystem _inventorySystem;
         [SerializeField] private FarmingManager _farmingManager;
+        [SerializeField] private CropSelectionSystem _cropSelectionSystem;
         [SerializeField] private FishingSystem _fishingSystem;
+        [SerializeField] private Grid _grid;
         
         [Header("=== Building Systems ===")]
         [SerializeField] private BuildingManager _buildingManager;
@@ -68,9 +70,15 @@ namespace DI
             if (_hungerSystem != null) Container.RegisterInstance(_hungerSystem);
             if (_staminaSystem != null) Container.RegisterInstance(_staminaSystem);
             
-            if (_inventorySystem != null) Container.RegisterInstance(_inventorySystem);
+            if (_inventorySystem != null)
+            {
+                Container.RegisterInstance(_inventorySystem);
+                Container.RegisterInstance<IInventorySystem>(_inventorySystem);
+            }
             if (_farmingManager != null) Container.RegisterInstance(_farmingManager);
+            if (_cropSelectionSystem != null) Container.RegisterInstance<ICropSelectionSystem>(_cropSelectionSystem);
             if (_fishingSystem != null) Container.RegisterInstance(_fishingSystem);
+            if (_grid != null) Container.RegisterInstance(_grid);
             
             if (_buildingManager != null) Container.RegisterInstance(_buildingManager);
             if (_buildingSystem != null) Container.RegisterInstance(_buildingSystem);

@@ -20,6 +20,7 @@ namespace SunnysideIsland.Farming
             if (Instance == null)
             {
                 Instance = this;
+                DI.DIContainer.Global.RegisterInstance(this);
             }
             else
             {
