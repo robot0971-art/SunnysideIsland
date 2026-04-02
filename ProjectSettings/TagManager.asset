@@ -6,6 +6,7 @@ TagManager:
   tags:
   - FarmPlot
   - EggPoint
+  - CampFire
   layers:
   - Default
   - TransparentFX
@@ -28,7 +29,7 @@ TagManager:
   - Crop
   - EggPoint
   - Grass
-  - 
+  - CampFire
   - 
   - 
   - 
