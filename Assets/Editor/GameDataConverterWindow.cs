@@ -64,11 +64,6 @@ namespace SunnysideIsland.Editor
             {
                 new SheetMapping("Animals", typeof(AnimalData), "animals")
             }),
-            new ExcelMapping("05_Combat.xlsx", new List<SheetMapping>
-            {
-                new SheetMapping("Monsters", typeof(MonsterData), "monsters"),
-                new SheetMapping("Bosses", typeof(BossData), "bosses")
-            }),
             new ExcelMapping("06_Buildings.xlsx", new List<SheetMapping>
             {
                 new SheetMapping("Buildings", typeof(BuildingData), "buildings"),
