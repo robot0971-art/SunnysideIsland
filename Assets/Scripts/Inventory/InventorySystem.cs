@@ -238,7 +238,26 @@ public bool AddItem(string itemId, int quantity = 1)
         public bool RemoveItem(int slotIndex, int quantity = 1)
         {
             if (slotIndex < 0 || slotIndex >= _capacity) return false;
-            return _slots[slotIndex].Remove(quantity);
+            var slot = _slots[slotIndex];
+            if (slot.IsEmpty)
+            {
+                return false;
+            }
+
+            string itemId = slot.ItemId;
+            int canRemove = Mathf.Min(quantity, slot.Quantity);
+            bool removed = slot.Remove(quantity);
+            if (removed)
+            {
+                EventBus.Publish(new ItemRemovedEvent
+                {
+                    ItemId = itemId,
+                    Quantity = canRemove,
+                    TotalQuantity = CountItem(itemId)
+                });
+            }
+
+            return removed;
         }
 
 
@@ -262,6 +281,16 @@ public bool AddItem(string itemId, int quantity = 1)
                 }
             }
 
+            int removed = quantity - remaining;
+            if (removed > 0)
+            {
+                EventBus.Publish(new ItemRemovedEvent
+                {
+                    ItemId = itemId,
+                    Quantity = removed,
+                    TotalQuantity = CountItem(itemId)
+                });
+            }
 
             return remaining == 0;
         }

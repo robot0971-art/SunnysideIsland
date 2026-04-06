@@ -17,12 +17,12 @@ namespace SunnysideIsland.UI.Components
         [SerializeField] protected TextMeshProUGUI _quantityText;
         [SerializeField] protected TextMeshProUGUI _keyText;
 
-
         [Header("=== Settings ===")]
         [SerializeField] protected bool _showQuantity = true;
         [SerializeField] protected bool _isDraggable = true;
-        [SerializeField][Range(0.1f, 1f)] protected float _iconScale = 0.7f; // 아이콘 크기 비율 (85%)
-
+        [SerializeField]
+        [Range(0.1f, 1f)]
+        protected float _iconScale = 0.7f;
 
         public int SlotIndex { get; protected set; }
         public string ItemId { get; protected set; }
@@ -30,7 +30,6 @@ namespace SunnysideIsland.UI.Components
         public bool IsEmpty => string.IsNullOrEmpty(ItemId) || Quantity <= 0;
         public bool IsSelected { get; protected set; }
         public bool IsLocked { get; protected set; }
-
 
         public event Action<SlotUI> OnClicked;
         public event Action<SlotUI> OnRightClicked;
@@ -41,22 +40,18 @@ namespace SunnysideIsland.UI.Components
         public event Action<SlotUI, Vector2> OnDragging;
         public event Action<SlotUI> OnDragEnded;
 
-
         private float _lastClickTime;
         private const float DOUBLE_CLICK_THRESHOLD = 0.3f;
-
 
         protected virtual void Awake()
         {
             ResetIconState();
         }
 
-
         public virtual void SetItem(string itemId, string itemName, int quantity, Sprite icon = null)
         {
             ItemId = itemId;
             Quantity = quantity;
-
 
             if (_iconImage != null)
             {
@@ -71,86 +66,65 @@ namespace SunnysideIsland.UI.Components
                     {
                         if (parentRect.rect.width == 0 || parentRect.rect.height == 0)
                         {
-                            UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
+                            LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
                         }
-                        
+
                         _iconImage.rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
                         _iconImage.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
                         _iconImage.rectTransform.pivot = new Vector2(0.5f, 0.5f);
-                        
+
                         float parentSize = 64f;
                         if (parentRect.rect.width > 0 && parentRect.rect.height > 0)
                         {
                             parentSize = Mathf.Min(parentRect.rect.width, parentRect.rect.height);
                         }
-                        
+
                         float size = parentSize * GetIconScale(itemId);
-                        
                         _iconImage.rectTransform.anchoredPosition = Vector2.zero;
                         _iconImage.rectTransform.sizeDelta = new Vector2(size, size);
                     }
                 }
             }
 
-
             if (_quantityText != null)
             {
                 if (!string.IsNullOrEmpty(itemName))
                 {
-                    string text = $"{itemName}x{quantity}";
-                    _quantityText.text = text;
-                    _quantityText.gameObject.SetActive(true);
-                    
-                    // 자동 폰트 크기 조절 설정
-                    _quantityText.enableAutoSizing = true;
-                    _quantityText.fontSizeMin = 8;
-                    _quantityText.fontSizeMax = 11;
-                    _quantityText.fontSize = 11;
+                    _quantityText.text = $"{itemName}x{quantity}";
                 }
                 else
                 {
-                    // itemName이 없으면 quantity만 표시 (1이어도 표시)
                     _quantityText.text = $"x{quantity}";
-                    _quantityText.gameObject.SetActive(true);
-                    
-                    // 자동 폰트 크기 조절 설정
-                    _quantityText.enableAutoSizing = true;
-                    _quantityText.fontSizeMin = 8;
-                    _quantityText.fontSizeMax = 11;
-                    _quantityText.fontSize = 11;
                 }
-            }
-            else
-            {
-                Debug.LogWarning("[SlotUI] _quantityText가 null입니다!");
-            }
-        }
 
+                _quantityText.gameObject.SetActive(true);
+                _quantityText.enableAutoSizing = true;
+                _quantityText.fontSizeMin = 8;
+                _quantityText.fontSizeMax = 11;
+                _quantityText.fontSize = 11;
+            }
+
+        }
 
         public virtual void Clear()
         {
             ItemId = null;
             Quantity = 0;
 
-
             ResetIconState();
-
 
             if (_quantityText != null)
             {
-                _quantityText.text = "";
+                _quantityText.text = string.Empty;
                 _quantityText.gameObject.SetActive(false);
             }
 
-            // 배경색은 유지 (변경하지 않음)
         }
-
 
         public void SetSlotIndex(int index)
         {
             SlotIndex = index;
         }
-
 
         public void SetSelected(bool selected)
         {
@@ -161,7 +135,6 @@ namespace SunnysideIsland.UI.Components
             }
         }
 
-
         public void SetLocked(bool locked)
         {
             IsLocked = locked;
@@ -170,7 +143,6 @@ namespace SunnysideIsland.UI.Components
                 _lockOverlay.enabled = locked;
             }
         }
-
 
         public void SetKeyText(string text)
         {
@@ -181,7 +153,6 @@ namespace SunnysideIsland.UI.Components
             }
         }
 
-
         public void SetIcon(Sprite icon)
         {
             if (_iconImage != null)
@@ -191,7 +162,6 @@ namespace SunnysideIsland.UI.Components
                 _iconImage.preserveAspect = true;
             }
         }
-
 
         protected void ResetIconState()
         {
@@ -216,7 +186,6 @@ namespace SunnysideIsland.UI.Components
             _iconImage.rectTransform.sizeDelta = Vector2.zero;
         }
 
-
         protected virtual float GetIconScale(string itemId)
         {
             if (string.Equals(itemId, "pork", StringComparison.OrdinalIgnoreCase))
@@ -227,11 +196,12 @@ namespace SunnysideIsland.UI.Components
             return _iconScale;
         }
 
-
         public virtual void OnPointerClick(PointerEventData eventData)
         {
-            if (IsLocked) return;
-
+            if (IsLocked)
+            {
+                return;
+            }
 
             float clickTime = Time.time;
             if (clickTime - _lastClickTime < DOUBLE_CLICK_THRESHOLD)
@@ -247,10 +217,8 @@ namespace SunnysideIsland.UI.Components
                 OnRightClicked?.Invoke(this);
             }
 
-
             _lastClickTime = clickTime;
         }
-
 
         public void OnPointerEnter(PointerEventData eventData)
         {
@@ -260,30 +228,38 @@ namespace SunnysideIsland.UI.Components
             }
         }
 
-
         public void OnPointerExit(PointerEventData eventData)
         {
             OnHoverExit?.Invoke(this);
         }
 
-
         public void OnBeginDrag(PointerEventData eventData)
         {
-            if (!_isDraggable || IsEmpty || IsLocked) return;
+            if (!_isDraggable || IsEmpty || IsLocked)
+            {
+                return;
+            }
+
             OnDragStarted?.Invoke(this, eventData.position);
         }
 
-
         public void OnDrag(PointerEventData eventData)
         {
-            if (!_isDraggable) return;
+            if (!_isDraggable)
+            {
+                return;
+            }
+
             OnDragging?.Invoke(this, eventData.position);
         }
 
-
         public void OnEndDrag(PointerEventData eventData)
         {
-            if (!_isDraggable) return;
+            if (!_isDraggable)
+            {
+                return;
+            }
+
             OnDragEnded?.Invoke(this);
         }
     }

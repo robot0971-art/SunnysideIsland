@@ -39,6 +39,11 @@ namespace SunnysideIsland.UI.Components
             {
                 _fillImage = transform.Find("Fill")?.GetComponent<Image>();
             }
+
+            if (_fillImage != null)
+            {
+                _normalColor = _fillImage.color;
+            }
         }
         
         private void Update()

@@ -21,6 +21,12 @@ namespace SunnysideIsland.GameData
         
         [Column("HungerRestore")]
         public int hungerRestore;
+
+        [Column("HealthRestore")]
+        public int healthRestore;
+
+        [Column("StaminaRestore")]
+        public float staminaRestore;
         
         [Column("AdditionalEffect")]
         public string additionalEffect;

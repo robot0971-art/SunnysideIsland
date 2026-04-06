@@ -58,6 +58,13 @@ namespace SunnysideIsland.Events
         public Vector3 DropPosition { get; set; }
     }
 
+    public class ItemRemovedEvent
+    {
+        public string ItemId { get; set; }
+        public int Quantity { get; set; }
+        public int TotalQuantity { get; set; }
+    }
+
     /// <summary>
     /// 플레이어 경험치가 변경되었을 때 발생하는 이벤트
     /// </summary>

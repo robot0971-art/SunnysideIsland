@@ -81,14 +81,18 @@ namespace SunnysideIsland.Inventory
                 if (recipe != null)
                 {
                     hungerRestore = recipe.hungerRestore;
+                    healthRestore = recipe.healthRestore;
+                    staminaRestore = recipe.staminaRestore;
                 }
 
-                if (hungerRestore == 0)
+                if (hungerRestore == 0 && healthRestore == 0 && Mathf.Approximately(staminaRestore, 0f))
                 {
                     var fish = gameData.fishData?.Find(x => x.itemId == itemId);
                     if (fish != null)
                     {
                         hungerRestore = fish.hungerRestore;
+                        healthRestore = fish.healthRestore;
+                        staminaRestore = fish.staminaRestore;
                     }
                 }
             }

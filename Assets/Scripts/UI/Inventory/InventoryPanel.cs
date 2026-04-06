@@ -78,6 +78,7 @@ namespace SunnysideIsland.UI.Inventory
         protected override async void OnOpened()
         {
             base.OnOpened();
+            HideItemDetail();
             await RefreshInventoryAsync();
         }
 
@@ -105,12 +106,14 @@ namespace SunnysideIsland.UI.Inventory
         private void SubscribeEvents()
         {
             EventBus.Subscribe<ItemPickedUpEvent>(OnItemPickedUp);
+            EventBus.Subscribe<ItemRemovedEvent>(OnItemRemoved);
             EventBus.Subscribe<ItemMovedEvent>(OnItemMoved);
         }
 
         private void UnsubscribeEvents()
         {
             EventBus.Unsubscribe<ItemPickedUpEvent>(OnItemPickedUp);
+            EventBus.Unsubscribe<ItemRemovedEvent>(OnItemRemoved);
             EventBus.Unsubscribe<ItemMovedEvent>(OnItemMoved);
         }
 
@@ -336,17 +339,12 @@ namespace SunnysideIsland.UI.Inventory
 
             if (_itemConsumptionService.TryConsume(slot.ItemId))
             {
-                ShowItemDetail(slot.ItemId);
                 await RefreshInventoryAsync();
             }
         }
 
         private void OnSlotHoverEnter(SlotUI slot)
         {
-            if (!slot.IsEmpty)
-            {
-                ShowItemDetail(slot.ItemId);
-            }
         }
 
         private void OnSlotHoverExit(SlotUI slot)
@@ -365,7 +363,6 @@ namespace SunnysideIsland.UI.Inventory
             if (index >= 0 && index < _slots.Count)
             {
                 _slots[index].SetSelected(true);
-                ShowItemDetail(_slots[index].ItemId);
             }
         }
 
@@ -414,6 +411,11 @@ namespace SunnysideIsland.UI.Inventory
         }
 
         private async void OnItemMoved(ItemMovedEvent evt)
+        {
+            await RefreshInventoryAsync();
+        }
+
+        private async void OnItemRemoved(ItemRemovedEvent evt)
         {
             await RefreshInventoryAsync();
         }
