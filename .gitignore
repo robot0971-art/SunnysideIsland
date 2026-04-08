@@ -80,3 +80,21 @@ __pycache__/
 *.swp
 *.swo
 *~
+
+# .NET SDK/CLI cache
+.dotnet/
+.dotnet-cli/
+/.tmp/
+
+# Development scripts
+create_excel_data_part*.py
+
+# Development docs
+TODO.md
+내일할일.md
+
+# Screenshots
+Screen Shot/
+
+# Windows temp files
+nul

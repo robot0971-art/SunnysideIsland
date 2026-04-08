@@ -234,24 +234,26 @@ namespace SunnysideIsland.Core
         /// </summary>
         private void LoadGameScene(Action onComplete = null)
         {
+            string currentScene = SceneManager.GetActiveScene().name;
+            bool isSameScene = currentScene == _gameSceneName;
+            
             var asyncLoad = SceneManager.LoadSceneAsync(_gameSceneName);
             
             if (asyncLoad != null && onComplete != null)
             {
                 asyncLoad.completed += (_) =>
                 {
-                    // 씬 로드 후 EventBus 초기화
-                    EventBus.Clear();
+                    if (!isSameScene)
+                    {
+                        EventBus.Clear();
+                    }
                     
-                    // 씬 로드 후 DI 주입
                     InjectSceneDependencies();
                     onComplete?.Invoke();
                 };
             }
             else if (onComplete != null)
             {
-                // 즉시 실행 (이미 로드된 경우)
-                EventBus.Clear();
                 InjectSceneDependencies();
                 onComplete?.Invoke();
             }
