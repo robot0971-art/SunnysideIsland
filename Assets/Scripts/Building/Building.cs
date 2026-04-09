@@ -29,7 +29,7 @@ namespace SunnysideIsland.Building
         void Demolish();
     }
 
-    public class Building : MonoBehaviour, IBuilding, ISaveable
+    public class Building : MonoBehaviour, IBuilding
     {
         [Header("=== Building Data ===")]
         [SerializeField] private DetailedBuildingData _buildingData;

@@ -115,28 +115,61 @@ namespace SunnysideIsland.Core
         /// </summary>
         public void LoadGame(string saveName)
         {
-            CurrentSaveName = saveName;
-            CurrentState = GameState.Loading;
-            
-            // 게임 씬 로드
-            LoadGameScene(() =>
+            if (Instance == null)
             {
-                // 씬 로드 후 저장 데이터 불러오기
-                if (_saveSystem != null)
+                Debug.LogError("[GameManager] No instance found to load game!");
+                return;
+            }
+
+            Debug.Log($"[GameManager] LoadGame Requested: {saveName}");
+            Instance.CurrentSaveName = saveName;
+            Instance.CurrentState = GameState.Loading;
+            
+            // 씬 로드
+            Instance.LoadGameScene(() =>
+            {
+                Debug.Log($"[GameManager] Scene Loaded. Starting LoadGameProcess on Current Instance.");
+                // 씬 로드 후에는 Instance가 바뀌었을 수 있으므로 다시 Instance를 통해 호출
+                if (Instance != null)
                 {
-                    bool success = _saveSystem.LoadGame(saveName);
-                    if (success)
-                    {
-                        CurrentState = GameState.Playing;
-                        Debug.Log($"[GameManager] Game loaded: {saveName}");
-                    }
-                    else
-                    {
-                        CurrentState = GameState.MainMenu;
-                        Debug.LogError($"[GameManager] Failed to load game: {saveName}");
-                    }
+                    // DI 재등록 (ClearAll에 의해 지워졌을 수 있음)
+                    DIContainer.Global.RegisterInstance(Instance);
+                    Instance.StartCoroutine(Instance.LoadGameProcess(saveName));
                 }
             });
+        }
+
+        private System.Collections.IEnumerator LoadGameProcess(string saveName)
+        {
+            // 한 프레임 대기하여 모든 오브젝트의 Awake/Start가 실행될 시간을 줍니다.
+            yield return null;
+            
+            // 참조 유실 방지: null이라면 DI 또는 직접 찾기 시도
+            if (_saveSystem == null)
+            {
+                _saveSystem = DIContainer.Resolve<SaveSystem>();
+                if (_saveSystem == null) _saveSystem = FindObjectOfType<SaveSystem>();
+            }
+            
+            if (_saveSystem != null)
+            {
+                Debug.Log($"[GameManager] Calling SaveSystem.LoadGame({saveName})");
+                bool success = _saveSystem.LoadGame(saveName);
+                if (success)
+                {
+                    CurrentState = GameState.Playing;
+                    Debug.Log($"[GameManager] Game loaded successfully: {saveName}");
+                }
+                else
+                {
+                    CurrentState = GameState.MainMenu;
+                    Debug.LogError($"[GameManager] Failed to load game: {saveName}");
+                }
+            }
+            else
+            {
+                Debug.LogError("[GameManager] SaveSystem is null! Cannot load game.");
+            }
         }
         
         /// <summary>

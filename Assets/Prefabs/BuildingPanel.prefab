@@ -925,11 +925,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e01cea8b336e9d94bb9ba012deb7ccec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SunnysideIsland.UI.Building.BuildingPanel
+  _isModal: 0
+  _pauseGameWhenOpen: 0
+  _closeOnEscape: 1
   _categoryTabContainer: {fileID: 4685457446683182000}
   _buildingGrid: {fileID: 4082110507523610423}
   _closeButton: {fileID: 4476315793706749918}
   _titleText: {fileID: 5017338980545558318}
-  _buildingDatabase: {fileID: 0}
+  _buildingDatabase: {fileID: 11400000, guid: 5ed2249f564426547b63cc9b0369aeb4, type: 2}
+  _campfireIconPrefab:
+    m_AssetGUID: 
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
   _defaultHousePrefab:
     m_AssetGUID: 9528e523ef2f4cf40a54f3bdba850ba7
     m_SubObjectName: 

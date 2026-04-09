@@ -32,7 +32,7 @@ namespace SunnysideIsland.UI.Menu
             if (_saveSystem == null)
                 _saveSystem = DIContainer.Resolve<SaveSystem>();
             if (_gameManager == null)
-                _gameManager = DIContainer.Resolve<GameManager>();
+                _gameManager = DIContainer.Resolve<GameManager>() ?? GameManager.Instance;
         }
 
         private void OnEnable()
@@ -152,6 +152,7 @@ namespace SunnysideIsland.UI.Menu
         /// </summary>
         public void OnSlotSelected(string saveName)
         {
+            Debug.Log($"[SaveLoadPanel] Slot Selected: {saveName} | Mode: {(_isSaveMode ? "Save" : "Load")} | GM: {(_gameManager != null)}");
             if (_isSaveMode)
             {
                 _gameManager?.SaveGame(saveName);
@@ -159,6 +160,7 @@ namespace SunnysideIsland.UI.Menu
             }
             else
             {
+                Debug.Log($"[SaveLoadPanel] Calling GameManager.LoadGame({saveName})");
                 _gameManager?.LoadGame(saveName);
                 Close();
             }

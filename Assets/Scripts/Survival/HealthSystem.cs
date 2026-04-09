@@ -114,11 +114,17 @@ namespace SunnysideIsland.Survival
         
         public void LoadSaveData(object state)
         {
+            Debug.Log($"[HealthSystem] LoadSaveData called. Current health before: {_currentHealth}");
             var data = state as HealthSaveData ?? (state as JObject)?.ToObject<HealthSaveData>();
             if (data != null)
             {
                 _currentHealth = data.CurrentHealth;
+                Debug.Log($"[HealthSystem] Loaded health: {_currentHealth}");
                 PublishChangedEvent(0);
+            }
+            else
+            {
+                Debug.LogWarning($"[HealthSystem] LoadSaveData: data is null or invalid");
             }
         }
     }

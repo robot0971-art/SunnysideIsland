@@ -181,13 +181,19 @@ namespace SunnysideIsland.Survival
 
         public void LoadSaveData(object state)
         {
+            Debug.Log($"[HungerSystem] LoadSaveData called. Current hunger before: {_currentHunger}");
             var data = state as HungerSaveData ?? (state as JObject)?.ToObject<HungerSaveData>();
             if (data != null)
             {
                 _currentHunger = data.CurrentHunger;
                 _lastDay = data.LastDay;
                 _lastHour = data.LastHour;
+                Debug.Log($"[HungerSystem] Loaded hunger: {_currentHunger}, LastDay: {_lastDay}, LastHour: {_lastHour}");
                 PublishChangedEvent();
+            }
+            else
+            {
+                Debug.LogWarning($"[HungerSystem] LoadSaveData: data is null or invalid");
             }
         }
     }

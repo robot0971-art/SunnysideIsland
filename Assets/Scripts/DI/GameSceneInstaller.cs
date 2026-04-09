@@ -9,6 +9,7 @@ using SunnysideIsland.Weather;
 using SunnysideIsland.Quest;
 using SunnysideIsland.Crafting;
 using SunnysideIsland.Cooking;
+using SunnysideIsland.Pool;
 
 using SunnysideIsland.Survival;
 using SunnysideIsland.Tutorial;
@@ -24,6 +25,7 @@ namespace DI
         [SerializeField] private TimeManager _timeManager;
         [SerializeField] private SaveSystem _saveSystem;
         [SerializeField] private GameManager _gameManager;
+        [SerializeField] private PoolManager _poolManager;
         
         [Header("=== Survival Systems ===")]
         [SerializeField] private HealthSystem _healthSystem;
@@ -65,6 +67,11 @@ namespace DI
             if (_timeManager != null) Container.RegisterInstance(_timeManager);
             if (_saveSystem != null) Container.RegisterInstance(_saveSystem);
             if (_gameManager != null) Container.RegisterInstance(_gameManager);
+            if (_poolManager != null)
+            {
+                Container.RegisterInstance(_poolManager);
+                Container.RegisterInstance<IPoolManager>(_poolManager);
+            }
             
             if (_healthSystem != null) Container.RegisterInstance(_healthSystem);
             if (_hungerSystem != null) Container.RegisterInstance(_hungerSystem);

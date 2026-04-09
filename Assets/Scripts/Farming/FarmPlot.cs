@@ -12,7 +12,7 @@ namespace SunnysideIsland.Farming
         Empty, Planted, Growing, Ready, Dead
     }
 
-    public class FarmPlot : MonoBehaviour, ISaveable
+    public class FarmPlot : MonoBehaviour
     {
         [Header("=== Settings ===")]
         [SerializeField] private SpriteRenderer _plotSprite;
@@ -39,7 +39,8 @@ namespace SunnysideIsland.Farming
 
         private void Start()
         {
-            if (_cropData == null)
+            // Only reset to Empty if cropData is null AND state hasn't been loaded from save
+            if (_cropData == null && _state == PlotState.Empty)
             {
                 _state = PlotState.Empty;
             }
@@ -245,7 +246,14 @@ namespace SunnysideIsland.Farming
         // --- 세이브/로드 기능 (기존 유지) ---
         public object GetSaveData()
         {
-            return new FarmPlotSaveData { State = _state, CropId = _cropId, GrowthProgress = _growthProgress, IsWatered = _isWatered, DaysPlanted = _daysPlanted };
+            return new FarmPlotSaveData { 
+                State = _state, 
+                CropId = _cropId, 
+                GrowthProgress = _growthProgress, 
+                IsWatered = _isWatered, 
+                DaysPlanted = _daysPlanted,
+                Position = transform.position
+            };
         }
 
         public void LoadSaveData(object state)
@@ -253,13 +261,31 @@ namespace SunnysideIsland.Farming
             var data = state as FarmPlotSaveData ?? (state as JObject)?.ToObject<FarmPlotSaveData>();
             if (data != null)
             {
-                _state = data.State; _cropId = data.CropId; _growthProgress = data.GrowthProgress; _isWatered = data.IsWatered; _daysPlanted = data.DaysPlanted;
+                _state = data.State; 
+                _cropId = data.CropId; 
+                _growthProgress = data.GrowthProgress; 
+                _isWatered = data.IsWatered; 
+                _daysPlanted = data.DaysPlanted;
+                transform.position = data.Position;
+                
+                // Restore CropData from cropId using FarmingManager
+                if (!string.IsNullOrEmpty(_cropId) && FarmingManager.Instance != null)
+                {
+                    _cropData = FarmingManager.Instance.GetCropData(_cropId);
+                }
+                
+                // Apply crop scale like Plant() does
+                if (_cropSprite != null && _cropData != null)
+                {
+                    _cropSprite.transform.localScale = Vector3.one * _cropData.CropScale;
+                }
+                
                 UpdateVisuals();
             }
         }
     }
 
-    [Serializable] public class FarmPlotSaveData { public PlotState State; public string CropId; public float GrowthProgress; public bool IsWatered; public int DaysPlanted; }
+    [Serializable] public class FarmPlotSaveData { public PlotState State; public string CropId; public float GrowthProgress; public bool IsWatered; public int DaysPlanted; public Vector3 Position; }
     public class CropPlantedEvent { public int PlotId { get; set; } public string CropId { get; set; } }
     public class CropReadyEvent { public int PlotId { get; set; } public string CropId { get; set; } }
     public class CropHarvestedEvent { public int PlotId { get; set; } public string CropId { get; set; } public int Amount { get; set; } }

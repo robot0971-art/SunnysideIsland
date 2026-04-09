@@ -3,17 +3,28 @@ using DI;
 using UnityEngine;
 using SunnysideIsland.Events;
 using SunnysideIsland.Inventory;
+using SunnysideIsland.Core;
+using SunnysideIsland.Pool;
+using SunnysideIsland.GameData;
+using Newtonsoft.Json.Linq;
+using SunnysideIsland.Farming;
 
 namespace SunnysideIsland.Farming
 {
-    public class FarmingManager : MonoBehaviour
+    public class FarmingManager : MonoBehaviour, ISaveable
     {
         public static FarmingManager Instance { get; private set; }
 
         [Header("=== Settings ===")]
         [SerializeField] public List<FarmPlot> _plots = new List<FarmPlot>();
+        [SerializeField] private GameObject _plotPrefab;
+        [Header("=== Crop Data ===")]
+        [SerializeField] private CropData[] _availableCrops = new CropData[0];
 
         [Inject(Optional = true)] private IInventorySystem _inventorySystem;
+        [Inject] private IPoolManager _poolManager;
+
+        public string SaveKey => "FarmingManager";
 
         private bool _isSubscribed;
 
@@ -129,6 +140,79 @@ namespace SunnysideIsland.Farming
             }
 
             return _plots[index];
+        }
+
+        public CropData GetCropData(string cropId)
+        {
+            if (string.IsNullOrEmpty(cropId)) return null;
+            
+            foreach (var crop in _availableCrops)
+            {
+                if (crop != null && crop.cropId == cropId)
+                    return crop;
+            }
+            return null;
+        }
+
+        public object GetSaveData()
+        {
+            var dataList = new List<FarmPlotSaveData>();
+            foreach (var plot in _plots)
+            {
+                if (plot != null)
+                {
+                    var data = plot.GetSaveData() as FarmPlotSaveData;
+                    if (data != null)
+                    {
+                        dataList.Add(data);
+                    }
+                }
+            }
+            return dataList;
+        }
+
+        public void LoadSaveData(object state)
+        {
+            var dataList = state as List<FarmPlotSaveData>;
+            if (dataList == null && state is JArray jArray)
+            {
+                dataList = jArray.ToObject<List<FarmPlotSaveData>>();
+            }
+
+            if (dataList == null) return;
+
+            string poolName = "FarmPlot";
+            for (int i = _plots.Count - 1; i >= 0; i--)
+            {
+                if (_plots[i] != null)
+                {
+                    if (_poolManager != null)
+                        _poolManager.Despawn(poolName, _plots[i].gameObject);
+                    else
+                        Destroy(_plots[i].gameObject);
+                }
+            }
+            _plots.Clear();
+
+            foreach (var data in dataList)
+            {
+                GameObject plotObj = null;
+                if (_poolManager != null)
+                    plotObj = _poolManager.Spawn(poolName);
+                else if (_plotPrefab != null)
+                    plotObj = Instantiate(_plotPrefab);
+
+                if (plotObj != null)
+                {
+                    var plot = plotObj.GetComponent<FarmPlot>();
+                    if (plot != null)
+                    {
+                        plot.Clear(); // Reset pool object first
+                        plot.LoadSaveData(data);
+                        _plots.Add(plot);
+                    }
+                }
+            }
         }
     }
 }

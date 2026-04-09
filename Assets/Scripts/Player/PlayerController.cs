@@ -688,7 +688,8 @@ namespace SunnysideIsland.Player
 
         public void LoadSaveData(object data)
         {
-            if (data is PlayerSaveData saveData)
+            var saveData = data as PlayerSaveData ?? (data as JObject)?.ToObject<PlayerSaveData>();
+            if (saveData != null)
             {
                 transform.position = saveData.Position;
                 _facingDirection = new Vector2(saveData.FacingDirectionX, saveData.FacingDirectionY);

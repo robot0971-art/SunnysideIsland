@@ -101,6 +101,7 @@ namespace SunnysideIsland.Core
             foreach (var saveable in found)
             {
                 Register(saveable);
+                Debug.Log($"[SaveSystem] Found saveable: {saveable.SaveKey} ({saveable.GetType().Name}) on GameObject: {((MonoBehaviour)saveable).name}");
             }
             
             Debug.Log($"[SaveSystem] Found {_saveables.Count} saveables in scene.");
@@ -192,6 +193,9 @@ namespace SunnysideIsland.Core
         {
             try
             {
+                Debug.Log($"[SaveSystem] === LOAD GAME START === SaveName: {saveName}");
+                Debug.Log($"[SaveSystem] Current Frame: {Time.frameCount}");
+                
                 string savePath = GetSavePath(saveName);
                 
                 if (!File.Exists(savePath))
@@ -201,6 +205,11 @@ namespace SunnysideIsland.Core
                 }
                 
                 FindAllInScene();
+                Debug.Log($"[SaveSystem] FindAllInScene() found {_saveables.Count} saveables");
+                foreach (var s in _saveables)
+                {
+                    Debug.Log($"[SaveSystem]   - Saveable: {s.SaveKey} ({s.GetType().Name})");
+                }
                 
                 string json = File.ReadAllText(savePath);
                 var saveData = JsonConvert.DeserializeObject<GameSaveData>(json, _jsonSettings);
@@ -210,6 +219,16 @@ namespace SunnysideIsland.Core
                     Debug.LogError($"[SaveSystem] Failed to deserialize save data: {saveName}");
                     return false;
                 }
+
+                if (saveData.Data != null)
+                {
+                    Debug.Log($"[SaveSystem] Successfully loaded file. Found {saveData.Data.Count} entries in save data.");
+                    Debug.Log($"[SaveSystem] Keys in save file: {string.Join(", ", saveData.Data.Keys)}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[SaveSystem] Save data found but 'Data' dictionary is null.");
+                }
                 
                 // 각 저장 가능한 오브젝트에 데이터 로드
                 foreach (var saveable in _saveables)
@@ -218,9 +237,12 @@ namespace SunnysideIsland.Core
                     {
                         if (saveData.Data.TryGetValue(saveable.SaveKey, out var data))
                         {
-                            // Newtonsoft.Json with TypeNameHandling.Auto should handle the typing.
-                            // However, if it's a JObject (e.g. type was lost or is generic), we might need to convert it.
+                            Debug.Log($"[SaveSystem] Found data for: {saveable.SaveKey}. Applying...");
                             saveable.LoadSaveData(data);
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"[SaveSystem] No data found in file for key: {saveable.SaveKey}. Skipping.");
                         }
                     }
                     catch (Exception e)

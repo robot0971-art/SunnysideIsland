@@ -439,6 +439,7 @@ public bool AddItem(string itemId, int quantity = 1)
 
         public void LoadSaveData(object state)
         {
+            Debug.Log($"[InventorySystem] LoadSaveData called.");
             InventorySaveData saveData = null;
 
             if (state is InventorySaveData data)
@@ -456,14 +457,17 @@ public bool AddItem(string itemId, int quantity = 1)
 
                 if (saveData.Slots != null)
                 {
+                    int loadedCount = 0;
                     for (int i = 0; i < saveData.Slots.Count && i < _capacity; i++)
                     {
                         if (saveData.Slots[i] != null)
                         {
                             int maxStack = GetMaxStack(saveData.Slots[i].ItemId);
                             _slots[i].Add(saveData.Slots[i].ItemId, saveData.Slots[i].Quantity, maxStack);
+                            loadedCount++;
                         }
                     }
+                    Debug.Log($"[InventorySystem] Loaded {loadedCount} slots from save data");
                 }
 
                 if (saveData.QuickSlots != null)
@@ -473,6 +477,10 @@ public bool AddItem(string itemId, int quantity = 1)
                         _quickSlots[i] = saveData.QuickSlots[i];
                     }
                 }
+            }
+            else
+            {
+                Debug.LogWarning($"[InventorySystem] LoadSaveData: saveData is null or invalid");
             }
         }
     }
