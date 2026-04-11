@@ -24,6 +24,8 @@ namespace SunnysideIsland.UI.Menu
         
         [Header("=== Settings ===")]
         [SerializeField] private bool _isSaveMode = false;
+        [SerializeField] private Canvas _canvas;
+        [SerializeField] private int _sortingOrder = 300;
 
         private SaveSystem _saveSystem;
         private GameManager _gameManager;
@@ -33,6 +35,7 @@ namespace SunnysideIsland.UI.Menu
         protected override void Awake()
         {
             base.Awake();
+            EnsureModalCanvas();
 
             RefreshDependencies();
         }
@@ -76,6 +79,7 @@ namespace SunnysideIsland.UI.Menu
         protected override void OnOpened()
         {
             base.OnOpened();
+            ApplyCanvasSorting();
             RefreshDependencies();
             Debug.Log($"[SaveLoadPanel] OnOpened called | Frame: {Time.frameCount}");
             RefreshList();
@@ -179,15 +183,16 @@ namespace SunnysideIsland.UI.Menu
             {
                 Debug.Log($"[SaveLoadPanel] Calling GameManager.LoadGame({saveName})");
                 var activeSceneName = SceneManager.GetActiveScene().name;
+                var resolvedGameManager = _gameManager ?? GameManager.Instance;
                 if (string.Equals(activeSceneName, "Start Scene", StringComparison.OrdinalIgnoreCase))
                 {
                     CloseViaUIManager();
                     GameManager.PrepareLoadGame(saveName);
                     SceneManager.LoadScene(GameManager.DefaultGameSceneName);
                 }
-                else if (_gameManager != null)
+                else if (resolvedGameManager != null)
                 {
-                    _gameManager.LoadGame(saveName);
+                    resolvedGameManager.LoadGame(saveName);
                     CloseViaUIManager();
                 }
                 else
@@ -251,6 +256,35 @@ namespace SunnysideIsland.UI.Menu
         {
             _saveSystem = FindFirstObjectByType<SaveSystem>(FindObjectsInactive.Include);
             _gameManager = GameManager.Instance ?? FindFirstObjectByType<GameManager>(FindObjectsInactive.Include);
+        }
+
+        private void EnsureModalCanvas()
+        {
+            if (_canvas == null)
+            {
+                _canvas = GetComponent<Canvas>();
+            }
+
+            if (_canvas == null)
+            {
+                _canvas = gameObject.AddComponent<Canvas>();
+            }
+
+            if (GetComponent<GraphicRaycaster>() == null)
+            {
+                gameObject.AddComponent<GraphicRaycaster>();
+            }
+        }
+
+        private void ApplyCanvasSorting()
+        {
+            if (_canvas == null)
+            {
+                return;
+            }
+
+            _canvas.overrideSorting = true;
+            _canvas.sortingOrder = _sortingOrder;
         }
     }
 }

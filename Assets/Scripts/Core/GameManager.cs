@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 using SunnysideIsland.Events;
 using SunnysideIsland.Core;
 using SunnysideIsland.Crafting;
+using SunnysideIsland.Quest;
 using SunnysideIsland.UI.Quest;
 using DI;
 using SunnysideIsland.UI;
@@ -49,6 +50,29 @@ namespace SunnysideIsland.Core
             Instance = this;
             DontDestroyOnLoad(gameObject);
             SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        private void EnsureNewGameQuestSetup()
+        {
+            var questSystem = FindFirstObjectByType<QuestSystem>(FindObjectsInactive.Include);
+            if (questSystem == null || questSystem.GetActiveQuests().Count > 0)
+            {
+                return;
+            }
+
+            var chapterQuestManager = FindFirstObjectByType<ChapterQuestManager>(FindObjectsInactive.Include);
+            if (chapterQuestManager == null)
+            {
+                questSystem.AcceptQuest("quest_crash");
+                return;
+            }
+
+            chapterQuestManager.StartChapter(chapterQuestManager.CurrentChapter);
+
+            if (questSystem.GetActiveQuests().Count == 0)
+            {
+                questSystem.AcceptQuest("quest_crash");
+            }
         }
         
         private void Start()
@@ -124,6 +148,7 @@ namespace SunnysideIsland.Core
         {
             RefreshSceneReferences();
             InjectSceneDependencies();
+            EnsureNewGameQuestSetup();
             CurrentSaveName = $"save_{DateTime.Now:yyyyMMdd_HHmmss}";
             LastPlayableSaveName = null;
             CurrentState = GameState.Loading;
@@ -186,6 +211,14 @@ namespace SunnysideIsland.Core
             UIManager.Instance?.CloseAllPanels();
             
             // 씬 로드
+            if (string.Equals(SceneManager.GetActiveScene().name, Instance._gameSceneName, StringComparison.OrdinalIgnoreCase))
+            {
+                Instance.RefreshSceneReferences();
+                Instance.InjectSceneDependencies();
+                Instance.StartCoroutine(Instance.LoadGameProcess(saveName));
+                return;
+            }
+
             Instance.LoadGameScene(() =>
             {
                 // 씬 로드 후에는 Instance가 바뀌었을 수 있으므로 다시 Instance를 통해 호출
@@ -418,18 +451,37 @@ namespace SunnysideIsland.Core
 
             Debug.Log("[GameManager] Opening QuestPanel after new game start");
             UIManager.Instance.CloseAllPanels();
-            yield return null;
-            yield return null;
+            yield return WaitForQuestInitialization();
 
             var questPanel = UIManager.Instance.GetPanel<QuestPanel>();
             if (questPanel != null)
             {
-                Debug.Log($"[GameManager] QuestPanel found: {questPanel.name}, IsOpen={questPanel.IsOpen}");
+                var questSystem = FindFirstObjectByType<QuestSystem>(FindObjectsInactive.Include);
+                int activeQuestCount = questSystem?.GetActiveQuests().Count ?? 0;
+                Debug.Log($"[GameManager] QuestPanel found: {questPanel.name}, IsOpen={questPanel.IsOpen}, ActiveQuests={activeQuestCount}, ActiveInHierarchy={questPanel.gameObject.activeInHierarchy}");
                 UIManager.Instance.OpenPanel(questPanel);
             }
             else
             {
                 Debug.LogWarning("[GameManager] QuestPanel not found on game start.");
+            }
+        }
+
+        private System.Collections.IEnumerator WaitForQuestInitialization()
+        {
+            const float timeoutSeconds = 1.5f;
+            float elapsed = 0f;
+
+            while (elapsed < timeoutSeconds)
+            {
+                var questSystem = FindFirstObjectByType<QuestSystem>(FindObjectsInactive.Include);
+                if (questSystem != null && questSystem.GetActiveQuests().Count > 0)
+                {
+                    yield break;
+                }
+
+                elapsed += Time.unscaledDeltaTime;
+                yield return null;
             }
         }
         
@@ -439,7 +491,7 @@ namespace SunnysideIsland.Core
         private void InjectSceneDependencies()
         {
             // 씬 내의 모든 MonoBehaviour에 DI 주입
-            var monoBehaviours = FindObjectsOfType<MonoBehaviour>();
+            var monoBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             foreach (var mb in monoBehaviours)
             {
                 DIContainer.Inject(mb);

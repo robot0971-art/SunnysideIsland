@@ -106,6 +106,11 @@ namespace SunnysideIsland.UI.HUD
                 return;
             }
 
+            if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameState.Paused)
+            {
+                return;
+            }
+
             if (UIManager.Instance != null
                 && UIManager.Instance.GetPanel<SunnysideIsland.UI.Menu.BoatConfirmPanel>()?.IsOpen == true)
             {

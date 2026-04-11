@@ -25,6 +25,7 @@ namespace SunnysideIsland.UI
     public class UIManager : MonoBehaviour, IUIManager
     {
         public static UIManager Instance { get; private set; }
+        private const string AutoCreatedName = "[UIManager]";
         
         [Header("=== Panels ===")]
         [SerializeField] private List<UIPanel> _panels = new List<UIPanel>();
@@ -41,20 +42,36 @@ namespace SunnysideIsland.UI
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void AutoCreate()
         {
-            if (Instance == null)
+            if (Instance != null)
             {
-                var go = new GameObject("[UIManager]");
-                Instance = go.AddComponent<UIManager>();
-                DontDestroyOnLoad(go);
+                return;
             }
+
+            var sceneInstance = FindFirstObjectByType<UIManager>(FindObjectsInactive.Include);
+            if (sceneInstance != null)
+            {
+                Instance = sceneInstance;
+                return;
+            }
+
+            var go = new GameObject(AutoCreatedName);
+            Instance = go.AddComponent<UIManager>();
+            DontDestroyOnLoad(go);
         }
         
         private void Awake()
         {
             if (Instance != null && Instance != this)
             {
-                Destroy(gameObject);
-                return;
+                if (string.Equals(Instance.gameObject.name, AutoCreatedName, StringComparison.Ordinal))
+                {
+                    Destroy(Instance.gameObject);
+                }
+                else
+                {
+                    Destroy(gameObject);
+                    return;
+                }
             }
             
             Instance = this;
@@ -354,6 +371,11 @@ namespace SunnysideIsland.UI
         private void OnDestroy()
         {
             SceneManager.sceneLoaded -= OnSceneLoaded;
+
+            if (Instance == this)
+            {
+                Instance = null;
+            }
         }
     }
 

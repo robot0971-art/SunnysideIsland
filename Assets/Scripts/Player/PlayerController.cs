@@ -185,6 +185,16 @@ namespace SunnysideIsland.Player
                 return;
             }
 
+            if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameState.Paused)
+            {
+                _moveDirection = Vector2.zero;
+                _rb.linearVelocity = Vector2.zero;
+                CheckCancelAutoMove();
+                HandleTimers();
+                UpdateAnimations();
+                return;
+            }
+
             if (SunnysideIsland.UI.UIManager.Instance != null
                 && SunnysideIsland.UI.UIManager.Instance.GetPanel<SunnysideIsland.UI.Menu.BoatConfirmPanel>()?.IsOpen == true)
             {
@@ -287,6 +297,12 @@ namespace SunnysideIsland.Player
         {
             if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameState.GameOver)
             {
+                return;
+            }
+
+            if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameState.Paused)
+            {
+                _moveDirection = Vector2.zero;
                 return;
             }
 

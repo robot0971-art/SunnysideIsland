@@ -1,4 +1,5 @@
 using DI;
+using SunnysideIsland.Core;
 using SunnysideIsland.Events;
 using SunnysideIsland.Quest;
 using TMPro;
@@ -31,6 +32,7 @@ namespace SunnysideIsland.UI.Quest
         {
             base.Awake();
             _isModal = true;
+            _closeOnEscape = false;
             _questCanvas = GetComponentInParent<Canvas>(true);
 
             if (_questCanvas != null)
@@ -54,19 +56,22 @@ namespace SunnysideIsland.UI.Quest
                 _questCanvas.sortingOrder = 200;
             }
 
-            SubscribeEvents();
-            RefreshQuestList();
+            GameManager.Instance?.PauseGame();
         }
 
         protected override void OnClosed()
         {
             base.OnClosed();
-            UnsubscribeEvents();
 
             if (_questCanvas != null)
             {
                 _questCanvas.overrideSorting = _questCanvasOverrideSorting;
                 _questCanvas.sortingOrder = _questCanvasSortingOrder;
+            }
+
+            if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameState.Paused)
+            {
+                GameManager.Instance.ResumeGame();
             }
         }
 
@@ -76,8 +81,6 @@ namespace SunnysideIsland.UI.Quest
             {
                 _closeButton.onClick.RemoveListener(Close);
             }
-
-            UnsubscribeEvents();
         }
 
         private void SubscribeEvents()
@@ -116,6 +119,15 @@ namespace SunnysideIsland.UI.Quest
 
         private void RefreshQuestList()
         {
+            if (_questSystem == null)
+            {
+                DIContainer.TryResolve(out _questSystem);
+                if (_questSystem == null)
+                {
+                    _questSystem = FindFirstObjectByType<QuestSystem>(FindObjectsInactive.Include);
+                }
+            }
+
             if (_questSystem == null)
             {
                 SetListText(string.Empty);
@@ -182,7 +194,7 @@ namespace SunnysideIsland.UI.Quest
         {
             if (_questCountText != null)
             {
-                _questCountText.text = string.Empty;
+                _questCountText.text = count.ToString();
             }
         }
     }

@@ -68,6 +68,10 @@ namespace SunnysideIsland.Core
                 return;
             }
             // ?�버�? N?�로 ?�음 ?�로 ?�동 (?�시?��? ?�태?�서???�동)
+            if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameState.Paused)
+            {
+                return;
+            }
             if (Input.GetKeyDown(KeyCode.N))
             {
                 AddDays(1);

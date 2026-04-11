@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using SunnysideIsland.Core;
 using SunnysideIsland.Events;
+using SunnysideIsland.GameData;
 using Newtonsoft.Json.Linq;
 
 namespace SunnysideIsland.Quest
@@ -50,6 +51,8 @@ namespace SunnysideIsland.Quest
     /// </summary>
     public class QuestSystem : MonoBehaviour, ISaveable
     {
+        private const string DefaultStartingQuestId = "quest_crash";
+
         [Header("=== Quest Data ===")]
         [SerializeField] private List<QuestData> _questDatabase = new List<QuestData>();
         
@@ -57,9 +60,15 @@ namespace SunnysideIsland.Quest
         private List<string> _completedQuests = new List<string>();
         
         public string SaveKey => "QuestSystem";
+
+        private void Awake()
+        {
+            EnsureQuestDatabaseLoaded();
+        }
         
         public void AcceptQuest(string questId)
         {
+            EnsureQuestDatabaseLoaded();
             if (HasQuest(questId)) return;
             
             var questData = FindQuestData(questId);
@@ -165,12 +174,14 @@ namespace SunnysideIsland.Quest
 
         public bool TryGetQuestData(string questId, out QuestData questData)
         {
+            EnsureQuestDatabaseLoaded();
             questData = FindQuestData(questId);
             return questData != null;
         }
 
         public string GetQuestTitle(string questId)
         {
+            EnsureQuestDatabaseLoaded();
             var questData = FindQuestData(questId);
             return questData != null ? questData.Title : questId;
         }
@@ -193,6 +204,97 @@ namespace SunnysideIsland.Quest
                     return data;
             }
             return null;
+        }
+
+        private void EnsureQuestDatabaseLoaded()
+        {
+            if (_questDatabase != null && _questDatabase.Count > 0)
+            {
+                return;
+            }
+
+            var gameData = Resources.Load<SunnysideIsland.GameData.GameData>("GameData/GameData");
+            if (gameData?.quests == null || gameData.quests.Count == 0)
+            {
+                Debug.LogWarning("[QuestSystem] Failed to load quest data from Resources/GameData/GameData.");
+                return;
+            }
+
+            _questDatabase = new List<QuestData>(gameData.quests.Count);
+            for (int i = 0; i < gameData.quests.Count; i++)
+            {
+                var source = gameData.quests[i];
+                if (source == null || string.IsNullOrWhiteSpace(source.questId))
+                {
+                    continue;
+                }
+
+                _questDatabase.Add(new QuestData
+                {
+                    QuestId = source.questId,
+                    Title = source.questName,
+                    Description = source.description,
+                    Objectives = SplitCsv(source.objectives),
+                    Rewards = ParseRewards(source.rewards),
+                    NextQuestId = ResolveNextQuestId(source.questId, gameData)
+                });
+            }
+        }
+
+        private static string[] SplitCsv(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return Array.Empty<string>();
+            }
+
+            return value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        private static int[] ParseRewards(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return Array.Empty<int>();
+            }
+
+            var parts = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            var rewards = new List<int>(parts.Length);
+            for (int i = 0; i < parts.Length; i++)
+            {
+                if (int.TryParse(parts[i], out int parsed))
+                {
+                    rewards.Add(parsed);
+                }
+            }
+
+            return rewards.ToArray();
+        }
+
+        private static string ResolveNextQuestId(string questId, SunnysideIsland.GameData.GameData gameData)
+        {
+            if (string.IsNullOrWhiteSpace(questId) || gameData?.quests == null)
+            {
+                return null;
+            }
+
+            string nextQuestId = null;
+            for (int i = 0; i < gameData.quests.Count; i++)
+            {
+                var candidate = gameData.quests[i];
+                if (candidate == null || !string.Equals(candidate.prerequisites, questId, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                nextQuestId = candidate.questId;
+                if (string.Equals(questId, DefaultStartingQuestId, StringComparison.OrdinalIgnoreCase))
+                {
+                    break;
+                }
+            }
+
+            return nextQuestId;
         }
         
         private int GetObjectiveTarget(string objective)

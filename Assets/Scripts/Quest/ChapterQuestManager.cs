@@ -99,6 +99,15 @@ namespace SunnysideIsland.Quest
         /// </summary>
         public void StartChapter(ChapterType chapter)
         {
+            if (_questSystem == null)
+            {
+                DI.DIContainer.TryResolve(out _questSystem);
+                if (_questSystem == null)
+                {
+                    _questSystem = FindFirstObjectByType<QuestSystem>(FindObjectsInactive.Include);
+                }
+            }
+
             _currentChapter = chapter;
             var chapterData = GetChapterData(chapter);
             

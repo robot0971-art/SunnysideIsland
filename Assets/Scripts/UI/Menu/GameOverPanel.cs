@@ -23,6 +23,10 @@ namespace SunnysideIsland.UI.Menu
         [Inject(Optional = true)]
         private SaveSystem _saveSystem;
 
+        private Canvas _canvas;
+        private bool _canvasOverrideSorting;
+        private int _canvasSortingOrder;
+
         protected override void Awake()
         {
             base.Awake();
@@ -36,6 +40,14 @@ namespace SunnysideIsland.UI.Menu
             {
                 DIContainer.TryResolve(out _saveSystem);
             }
+
+            _canvas = GetComponentInParent<Canvas>(true);
+            if (_canvas != null)
+            {
+                _canvasOverrideSorting = _canvas.overrideSorting;
+                _canvasSortingOrder = _canvas.sortingOrder;
+            }
+
             ResolveReferences();
             HookButtons();
             ApplyDefaultMessage();
@@ -158,6 +170,28 @@ namespace SunnysideIsland.UI.Menu
             }
 
             Open();
+        }
+
+        protected override void OnOpened()
+        {
+            base.OnOpened();
+
+            if (_canvas != null)
+            {
+                _canvas.overrideSorting = true;
+                _canvas.sortingOrder = 400;
+            }
+        }
+
+        protected override void OnClosed()
+        {
+            base.OnClosed();
+
+            if (_canvas != null)
+            {
+                _canvas.overrideSorting = _canvasOverrideSorting;
+                _canvas.sortingOrder = _canvasSortingOrder;
+            }
         }
 
         private void OnLoadClicked()
