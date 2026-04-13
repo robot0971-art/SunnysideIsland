@@ -322,6 +322,8 @@ namespace SunnysideIsland.UI
 
             if (Input.GetKeyDown(KeyCode.Escape))
             {
+                TrimClosedPanelsFromStack();
+
                 if (_usePanelStack && _panelStack.Count > 0)
                 {
                     var topPanel = _panelStack.Peek();
@@ -335,6 +337,25 @@ namespace SunnysideIsland.UI
                         OpenPanel(saveLoadPanel);
                     }
                 }
+            }
+        }
+
+        private void TrimClosedPanelsFromStack()
+        {
+            if (!_usePanelStack || _panelStack.Count == 0)
+            {
+                return;
+            }
+
+            while (_panelStack.Count > 0)
+            {
+                var topPanel = _panelStack.Peek();
+                if (topPanel != null && topPanel.IsOpen)
+                {
+                    break;
+                }
+
+                _panelStack.Pop();
             }
         }
         

@@ -35,6 +35,7 @@ namespace SunnysideIsland.Pool
         {
             if (Instance != null && Instance != this)
             {
+                Instance.MergePredefinedPools(_predefinedPools);
                 Destroy(gameObject);
                 return;
             }
@@ -54,11 +55,31 @@ namespace SunnysideIsland.Pool
         {
             foreach (var config in _predefinedPools)
             {
-                if (config.Prefab != null)
-                {
-                    CreatePool(config.PoolName, config.Prefab, config.InitialSize, config.MaxSize);
-                }
+                EnsurePool(config);
             }
+        }
+
+        private void MergePredefinedPools(List<PoolConfig> incomingPools)
+        {
+            if (incomingPools == null || incomingPools.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var config in incomingPools)
+            {
+                EnsurePool(config);
+            }
+        }
+
+        private void EnsurePool(PoolConfig config)
+        {
+            if (config == null || config.Prefab == null)
+            {
+                return;
+            }
+
+            CreatePool(config.PoolName, config.Prefab, config.InitialSize, config.MaxSize);
         }
         
         public ObjectPool CreatePool(string poolName, GameObject prefab, int initialSize = -1, int maxSize = -1)
@@ -91,6 +112,12 @@ namespace SunnysideIsland.Pool
             {
                 return pool;
             }
+
+            if (TryRecoverMissingPool(poolName, out pool))
+            {
+                return pool;
+            }
+
             return null;
         }
         
@@ -178,6 +205,40 @@ namespace SunnysideIsland.Pool
         {
             var pool = GetPool(poolName);
             return pool?.CountActive ?? 0;
+        }
+
+        private bool TryRecoverMissingPool(string poolName, out ObjectPool pool)
+        {
+            pool = null;
+
+            if (string.IsNullOrWhiteSpace(poolName))
+            {
+                return false;
+            }
+
+            var managers = FindObjectsByType<PoolManager>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 0; i < managers.Length; i++)
+            {
+                var manager = managers[i];
+                if (manager == null)
+                {
+                    continue;
+                }
+
+                for (int j = 0; j < manager._predefinedPools.Count; j++)
+                {
+                    var config = manager._predefinedPools[j];
+                    if (config == null || !string.Equals(config.PoolName, poolName, System.StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    EnsurePool(config);
+                    return _pools.TryGetValue(poolName, out pool);
+                }
+            }
+
+            return false;
         }
     }
     

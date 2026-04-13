@@ -43,7 +43,7 @@ namespace SunnysideIsland.UI.Quest
 
             if (_closeButton != null)
             {
-                _closeButton.onClick.AddListener(Close);
+                _closeButton.onClick.AddListener(CloseViaUIManager);
             }
         }
 
@@ -79,7 +79,19 @@ namespace SunnysideIsland.UI.Quest
         {
             if (_closeButton != null)
             {
-                _closeButton.onClick.RemoveListener(Close);
+                _closeButton.onClick.RemoveListener(CloseViaUIManager);
+            }
+        }
+
+        private void CloseViaUIManager()
+        {
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ClosePanel(this);
+            }
+            else
+            {
+                Close();
             }
         }
 

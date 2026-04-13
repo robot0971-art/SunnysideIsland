@@ -1,6 +1,7 @@
-using UnityEngine;
-using SunnysideIsland.Pool;
+using DI;
 using SunnysideIsland.Items;
+using SunnysideIsland.Pool;
+using UnityEngine;
 
 namespace SunnysideIsland.Animal
 {
@@ -18,14 +19,22 @@ namespace SunnysideIsland.Animal
         public bool HasEgg { get; private set; } = false;
         public GameObject CurrentEgg { get; private set; } = null;
         
+        [Inject(Optional = true)] private IPoolManager _poolManager;
         private ObjectPool _eggPool;
         
         private void Start()
         {
             // 풀 참조 가져오기
-            if (PoolManager.Instance != null)
+            DIContainer.Inject(this);
+
+            if (_poolManager == null)
             {
-                _eggPool = PoolManager.Instance.GetPool(_poolName);
+                DIContainer.TryResolve(out _poolManager);
+            }
+
+            if (_poolManager != null)
+            {
+                _eggPool = _poolManager.GetPool(_poolName);
             }
             
             // 풀도 없고 프리팹도 없으면 Resources에서 찾기

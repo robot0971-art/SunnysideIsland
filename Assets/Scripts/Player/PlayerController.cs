@@ -64,6 +64,7 @@ namespace SunnysideIsland.Player
         [Inject(Optional = true)] private ICropSelectionSystem _cropSelectionSystem;
         [Inject(Optional = true)] private FarmingManager _farmingManager;
         [Inject(Optional = true)] private Grid _grid;
+        [Inject(Optional = true)] private IPoolManager _poolManager;
 
         private IUIManager UIManager
         {
@@ -74,6 +75,19 @@ namespace SunnysideIsland.Player
                     DIContainer.TryResolve(out _uiManager);
                 }
                 return _uiManager;
+            }
+        }
+
+        private IPoolManager PoolManager
+        {
+            get
+            {
+                if (_poolManager == null)
+                {
+                    DIContainer.TryResolve(out _poolManager);
+                }
+
+                return _poolManager;
             }
         }
 
@@ -616,13 +630,13 @@ namespace SunnysideIsland.Player
             string poolName = "FarmPlot";
             GameObject newPlot = null;
 
-            if (PoolManager.Instance != null)
+            if (PoolManager != null)
             {
-                if (PoolManager.Instance.GetPool(poolName) == null)
+                if (PoolManager.GetPool(poolName) == null)
                 {
-                    PoolManager.Instance.CreatePool(poolName, _plotPrefab, 20, 100);
+                    PoolManager.CreatePool(poolName, _plotPrefab, 20, 100);
                 }
-                newPlot = PoolManager.Instance.Spawn(poolName, new Vector3(spawnPos.x, spawnPos.y, 0), Quaternion.identity);
+                newPlot = PoolManager.Spawn(poolName, new Vector3(spawnPos.x, spawnPos.y, 0), Quaternion.identity);
             }
             else
             {

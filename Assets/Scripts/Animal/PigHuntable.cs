@@ -307,7 +307,7 @@ namespace SunnysideIsland.Animal
                 return true;
             }
 
-            _poolManager = PoolManager.Instance;
+            _poolManager = FindFirstObjectByType<PoolManager>(FindObjectsInactive.Include);
             return _poolManager != null;
         }
 

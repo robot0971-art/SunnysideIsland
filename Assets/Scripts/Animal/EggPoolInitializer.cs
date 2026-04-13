@@ -1,3 +1,5 @@
+using DI;
+using SunnysideIsland.Pool;
 using UnityEngine;
 
 namespace SunnysideIsland.Animal
@@ -10,8 +12,11 @@ namespace SunnysideIsland.Animal
         [SerializeField] private int _initialSize = 10;
         [SerializeField] private int _maxSize = 50;
         
+        [Inject(Optional = true)] private IPoolManager _poolManager;
+        
         private void Start()
         {
+            DIContainer.Inject(this);
             InitializeEggPool();
         }
         
@@ -31,14 +36,19 @@ namespace SunnysideIsland.Animal
                 return;
             }
             
-            if (Pool.PoolManager.Instance != null)
+            if (_poolManager == null)
+            {
+                DIContainer.TryResolve(out _poolManager);
+            }
+
+            if (_poolManager != null)
             {
                 // 풀이 이미 존재하는지 확인
-                var existingPool = Pool.PoolManager.Instance.GetPool(_poolName);
+                var existingPool = _poolManager.GetPool(_poolName);
                 if (existingPool == null)
                 {
                     // 새 풀 생성
-                    Pool.PoolManager.Instance.CreatePool(_poolName, _eggPrefab, _initialSize, _maxSize);
+                    _poolManager.CreatePool(_poolName, _eggPrefab, _initialSize, _maxSize);
                 }
             }
             else
