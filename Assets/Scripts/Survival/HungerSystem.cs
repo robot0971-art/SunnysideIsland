@@ -37,7 +37,7 @@ namespace SunnysideIsland.Survival
         private int _lastHour = -1;
 
         [Inject]
-        private HealthSystem _healthSystem;
+        private HealthSystem _healthSystem = default!;
 
         public float CurrentValue => _currentHunger;
         public float MaxValue => _maxHunger;

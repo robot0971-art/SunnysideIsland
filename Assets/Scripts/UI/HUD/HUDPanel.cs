@@ -1,8 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using DI;
 using SunnysideIsland.Events;
+using SunnysideIsland.Input;
 using SunnysideIsland.Survival;
 using SunnysideIsland.Core;
 using SunnysideIsland.UI.Components;
@@ -49,25 +50,23 @@ namespace SunnysideIsland.UI.HUD
         [SerializeField] private GameObject _gameClearPanel;
 
         [Inject(Optional = true)]
-        private HealthSystem _healthSystem;
+        private HealthSystem _healthSystem = default!;
 
         [Inject(Optional = true)]
-        private HungerSystem _hungerSystem;
+        private HungerSystem _hungerSystem = default!;
 
         [Inject(Optional = true)]
-        private StaminaSystem _staminaSystem;
+        private StaminaSystem _staminaSystem = default!;
 
         [Inject(Optional = true)]
-        private TimeManager _timeManager;
+        private TimeManager _timeManager = default!;
 
         [Inject(Optional = true)]
-        private Weather.WeatherSystem _weatherSystem;
+        private Weather.WeatherSystem _weatherSystem = default!;
 
         [Inject(Optional = true)]
-        private InventorySystem _inventorySystem;
+        private InventorySystem _inventorySystem = default!;
 
-        [Inject(Optional = true)]
-        private CraftingSystem _craftingSystem;
 
         private const int RequiredWood = 50;
         private const float UPDATE_INTERVAL = 1f;
@@ -129,7 +128,7 @@ namespace SunnysideIsland.UI.HUD
                 UpdateQuestGoal();
             }
 
-            if (Input.GetKeyDown(KeyCode.C))
+            if (GameInput.GetKeyDown(KeyCode.C))
             {
                 UIManager.Instance?.OpenCraftingPanel();
             }

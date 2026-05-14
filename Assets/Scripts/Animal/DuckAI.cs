@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace SunnysideIsland.Animal
@@ -8,7 +8,6 @@ namespace SunnysideIsland.Animal
         [Header("=== Duck Settings ===")]
         [SerializeField] private float _moveSpeed = 2f;
         [SerializeField] private float _wanderRadius = 15f;
-        [SerializeField] private float _wanderInterval = 3f;
         [SerializeField] private float _idleTime = 2f;
         [SerializeField] private LayerMask _seaLayer;
         [SerializeField] private SpriteRenderer _spriteRenderer;
@@ -47,7 +46,7 @@ namespace SunnysideIsland.Animal
             _spawnPosition = transform.position;
             _idleTimer = _idleTime;
             
-            // 플레이어 찾기
+            // ?뚮젅?댁뼱 李얘린
             var player = GameObject.FindGameObjectWithTag("Player");
             if (player != null)
                 _playerTransform = player.transform;
@@ -55,7 +54,7 @@ namespace SunnysideIsland.Animal
         
         private void Update()
         {
-            // 물 밖에 있으면 즉시 물로 돌아가기
+            // 臾?諛뽰뿉 ?덉쑝硫?利됱떆 臾쇰줈 ?뚯븘媛湲?
             if (!IsOnSea(transform.position))
             {
                 ReturnToWater();
@@ -80,7 +79,7 @@ namespace SunnysideIsland.Animal
         {
             _idleTimer -= Time.deltaTime;
             
-            // 플레이어 감지
+            // ?뚮젅?댁뼱 媛먯?
             if (DetectPlayer() && _playerTransform != null)
             {
                 ChangeState(DuckState.Flee);
@@ -95,14 +94,14 @@ namespace SunnysideIsland.Animal
         
         private void UpdateWander()
         {
-            // 플레이어 감지
+            // ?뚮젅?댁뼱 媛먯?
             if (DetectPlayer() && _playerTransform != null)
             {
                 ChangeState(DuckState.Flee);
                 return;
             }
             
-            // 목표가 물 밖이면 새 목표 설정
+            // 紐⑺몴媛 臾?諛뽰씠硫???紐⑺몴 ?ㅼ젙
             if (!IsOnSea(_wanderTarget))
             {
                 SetRandomWanderTargetOnSea();
@@ -113,28 +112,28 @@ namespace SunnysideIsland.Animal
                 }
             }
             
-            // 목표에 도달했으면 Idle로
+            // 紐⑺몴???꾨떖?덉쑝硫?Idle濡?
             if (Vector3.Distance(transform.position, _wanderTarget) < 0.3f)
             {
                 ChangeState(DuckState.Idle);
                 return;
             }
             
-            // 이동
+            // ?대룞
             Vector3 direction = (_wanderTarget - transform.position).normalized;
             Vector3 nextPosition = transform.position + direction * _moveSpeed * Time.deltaTime;
             
-            // 다음 위치가 물 위인지 확인
+            // ?ㅼ쓬 ?꾩튂媛 臾??꾩씤吏 ?뺤씤
             if (!IsOnSea(nextPosition))
             {
-                // 물 밖으로 가려하면 새 목표 설정
+                // 臾?諛뽰쑝濡?媛?ㅽ븯硫???紐⑺몴 ?ㅼ젙
                 SetRandomWanderTargetOnSea();
                 return;
             }
             
             transform.position = nextPosition;
             
-            // 스프라이트 방향
+            // ?ㅽ봽?쇱씠??諛⑺뼢
             if (_spriteRenderer != null && direction.x != 0)
             {
                 _spriteRenderer.flipX = direction.x > 0;
@@ -151,21 +150,21 @@ namespace SunnysideIsland.Animal
             
             float distance = Vector3.Distance(transform.position, _playerTransform.position);
             
-            // 도망 거리 벗어나면 Idle로
+            // ?꾨쭩 嫄곕━ 踰쀬뼱?섎㈃ Idle濡?
             if (distance > _fleeRange * 1.5f)
             {
                 ChangeState(DuckState.Idle);
                 return;
             }
             
-            // 플레이어 반대 방향으로 도망
+            // ?뚮젅?댁뼱 諛섎? 諛⑺뼢?쇰줈 ?꾨쭩
             Vector3 fleeDirection = (transform.position - _playerTransform.position).normalized;
             Vector3 nextPosition = transform.position + fleeDirection * _moveSpeed * 1.5f * Time.deltaTime;
             
-            // 도망할 위치가 물 위인지 확인
+            // ?꾨쭩???꾩튂媛 臾??꾩씤吏 ?뺤씤
             if (!IsOnSea(nextPosition))
             {
-                // 물 밖으로 도망가려 하면 Idle로 (도망 포기)
+                // 臾?諛뽰쑝濡??꾨쭩媛???섎㈃ Idle濡?(?꾨쭩 ?ш린)
                 ChangeState(DuckState.Idle);
                 return;
             }
@@ -200,7 +199,7 @@ namespace SunnysideIsland.Animal
         
         private void SetRandomWanderTargetOnSea()
         {
-            // 물 위에서만 랜덤 위치 찾기
+            // 臾??꾩뿉?쒕쭔 ?쒕뜡 ?꾩튂 李얘린
             for (int i = 0; i < 30; i++)
             {
                 float randomX = (Random.value * 2f - 1f) * _wanderRadius;
@@ -214,13 +213,13 @@ namespace SunnysideIsland.Animal
                 }
             }
             
-            // 실패하면 현재 위치 유지
+            // ?ㅽ뙣?섎㈃ ?꾩옱 ?꾩튂 ?좎?
             _wanderTarget = Vector3.zero;
         }
         
         private void ReturnToWater()
         {
-            // 가장 가까운 물로 이동
+            // 媛??媛源뚯슫 臾쇰줈 ?대룞
             for (float radius = 1f; radius <= 10f; radius += 1f)
             {
                 for (int angle = 0; angle < 360; angle += 30)

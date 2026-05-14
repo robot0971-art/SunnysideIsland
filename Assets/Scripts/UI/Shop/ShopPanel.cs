@@ -1,9 +1,8 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using DI;
-using SunnysideIsland.Inventory;
 using GameDataClass = SunnysideIsland.GameData.GameData;
 
 namespace SunnysideIsland.UI.Shop
@@ -40,9 +39,7 @@ namespace SunnysideIsland.UI.Shop
         [SerializeField] private TextMeshProUGUI _totalPriceText;
         
         [Inject]
-        private InventorySystem _inventory;
-        [Inject]
-        private GameDataClass _gameData;
+        private GameDataClass _gameData = default!;
         
         private ShopMode _currentMode = ShopMode.Buy;
         private string _selectedItemId;
@@ -204,7 +201,7 @@ namespace SunnysideIsland.UI.Shop
             if (_totalPriceText != null)
             {
                 int total = _selectedPrice * _selectedQuantity;
-                _totalPriceText.text = $"총 {total:N0} G";
+                _totalPriceText.text = $"珥?{total:N0} G";
             }
         }
         

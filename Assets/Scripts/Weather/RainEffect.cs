@@ -1,11 +1,12 @@
 using UnityEngine;
+using DI;
 using SunnysideIsland.Events;
 using SunnysideIsland.GameData;
 
 namespace SunnysideIsland.Weather
 {
     /// <summary>
-    /// 비 효과 (Particle System)
+    /// �??�과 (Particle System)
     /// </summary>
     public class RainEffect : MonoBehaviour
     {
@@ -17,6 +18,9 @@ namespace SunnysideIsland.Weather
         
         private ParticleSystem _particleSystem;
         private Transform _targetCamera;
+
+        [Inject(Optional = true)]
+        private WeatherSystem _weatherSystem = default!;
         
         private void Awake()
         {
@@ -26,16 +30,17 @@ namespace SunnysideIsland.Weather
 
         private void Start()
         {
-            // 이벤트 구독
+            DIContainer.Inject(this);
+            // ?�벤??구독
             EventBus.Subscribe<WeatherChangedEvent>(OnWeatherChanged);
             
-            // 초기 날씨 체크
+            // 초기 ?�씨 체크
             CheckInitialWeather();
         }
 
         private void OnDestroy()
         {
-            // 이벤트 구독 해제
+            // ?�벤??구독 ?�제
             EventBus.Unsubscribe<WeatherChangedEvent>(OnWeatherChanged);
         }
         
@@ -46,10 +51,14 @@ namespace SunnysideIsland.Weather
 
         private void CheckInitialWeather()
         {
-            var weatherSystem = FindObjectOfType<WeatherSystem>();
-            if (weatherSystem != null)
+            if (_weatherSystem == null)
             {
-                UpdateByWeather(weatherSystem.CurrentWeather);
+                DIContainer.TryResolve(out _weatherSystem);
+            }
+
+            if (_weatherSystem != null)
+            {
+                UpdateByWeather(_weatherSystem.CurrentWeather);
             }
         }
 
@@ -69,10 +78,10 @@ namespace SunnysideIsland.Weather
         
         private void CreateParticleSystem()
         {
-            // 파티클 시스템 추가
+            // ?�티???�스??추�?
             _particleSystem = gameObject.AddComponent<ParticleSystem>();
             
-            // 먼저 정지 상태로 설정
+            // 먼�? ?��? ?�태�??�정
             _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             
             // Main 모듈
@@ -81,8 +90,8 @@ namespace SunnysideIsland.Weather
             main.loop = true;
             main.startLifetime = 1.5f;
             main.startSpeed = _fallSpeed;
-            main.startSize = _particleSize;  // 0.2f로 증가
-            main.startColor = _particleColor;  // 더 밝고 불투명하게
+            main.startSize = _particleSize;  // 0.2f�?증�?
+            main.startColor = _particleColor;  // ??밝고 불투명하�?
             main.simulationSpace = ParticleSystemSimulationSpace.World;
             main.maxParticles = _particleCount;
             
@@ -92,32 +101,32 @@ namespace SunnysideIsland.Weather
             var emission = _particleSystem.emission;
             emission.rateOverTime = _particleCount;
             
-            // Shape - Box (2D용)
+            // Shape - Box (2D??
             var shape = _particleSystem.shape;
             shape.shapeType = ParticleSystemShapeType.Box;
-            shape.scale = new Vector3(30f, 1f, 0f); // Z축 0으로 (2D)
-            shape.position = new Vector3(0f, 15f, 0f); // Z축 0 (2D 평면 위)
+            shape.scale = new Vector3(30f, 1f, 0f); // Z�?0?�로 (2D)
+            shape.position = new Vector3(0f, 15f, 0f); // Z�?0 (2D ?�면 ??
             
-            // Renderer - 2D용 설정
+            // Renderer - 2D???�정
             var renderer = _particleSystem.GetComponent<ParticleSystemRenderer>();
             renderer.renderMode = ParticleSystemRenderMode.Stretch;
-            renderer.lengthScale = 5f; // 더 길게 (비 효과)
-            renderer.sortingLayerName = "Default"; // UI → Default로 변경
+            renderer.lengthScale = 5f; // ??길게 (�??�과)
+            renderer.sortingLayerName = "Default"; // UI ??Default�?변�?
             renderer.sortingOrder = 100;
             
-            // 머티리얼 설정 - 2D용 Sprites/Default
+            // 머티리얼 ?�정 - 2D??Sprites/Default
             var mat = new Material(Shader.Find("Sprites/Default"));
-            mat.color = new Color(1f, 1f, 1f, 0.8f); // 흰색, 80% 불투명
+            mat.color = new Color(1f, 1f, 1f, 0.8f); // ?�색, 80% 불투�?
             renderer.material = mat;
             Debug.Log("[RainEffect] Using Sprites/Default material for 2D");
             
-            // Velocity over Lifetime - Y축으로만 이동 (2D용)
+            // Velocity over Lifetime - Y축으로만 ?�동 (2D??
             var velocity = _particleSystem.velocityOverLifetime;
             velocity.enabled = true;
             velocity.space = ParticleSystemSimulationSpace.World;
-            velocity.y = new ParticleSystem.MinMaxCurve(-_fallSpeed); // Y축으로만 아래로
-            velocity.x = new ParticleSystem.MinMaxCurve(0f); // X축 0
-            velocity.z = new ParticleSystem.MinMaxCurve(0f); // Z축 0 (2D에서는 Z축 이동 금지)
+            velocity.y = new ParticleSystem.MinMaxCurve(-_fallSpeed); // Y축으로만 ?�래�?
+            velocity.x = new ParticleSystem.MinMaxCurve(0f); // X�?0
+            velocity.z = new ParticleSystem.MinMaxCurve(0f); // Z�?0 (2D?�서??Z�??�동 금�?)
             
             Debug.Log($"[RainEffect] Velocity: X=0, Y={-_fallSpeed}, Z=0");
             
@@ -126,7 +135,7 @@ namespace SunnysideIsland.Weather
         
         private void FollowCamera()
         {
-            if (!Application.isPlaying) return; // 에디터 모드에서는 자동 이동 중지
+            if (!Application.isPlaying) return; // ?�디??모드?�서???�동 ?�동 중�?
 
             if (_targetCamera == null)
             {
@@ -139,10 +148,10 @@ namespace SunnysideIsland.Weather
                 return;
             }
             
-            // 카메라 위치 따라가기 (Z축은 0으로 고정 - 2D)
+            // 카메???�치 ?�라가�?(Z축�? 0?�로 고정 - 2D)
             Vector3 pos = _targetCamera.position;
-            pos.y += 2f; // 카메라보다 2 위에 위치 (12에서 수정)
-            pos.z = 0f; // Z축 0으로 고정 (2D)
+            pos.y += 2f; // 카메?�보??2 ?�에 ?�치 (12?�서 ?�정)
+            pos.z = 0f; // Z�?0?�로 고정 (2D)
             transform.position = pos;
         }
         
@@ -165,7 +174,7 @@ namespace SunnysideIsland.Weather
         }
         
         /// <summary>
-        /// 디버깅용: 현재 파티클 상태 반환
+        /// ?�버깅용: ?�재 ?�티???�태 반환
         /// </summary>
         public string GetStatus()
         {

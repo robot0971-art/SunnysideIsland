@@ -1,7 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using SunnysideIsland.Events;
-using SunnysideIsland.Inventory;
 using SunnysideIsland.Pool;
 using DI;
 
@@ -14,8 +13,7 @@ namespace SunnysideIsland.Environment
         [SerializeField] private float _dropRadius = 0.5f;
         [SerializeField] private string _woodPoolName = "Wood";
         
-        [Inject] private IInventorySystem _inventorySystem;
-        [Inject] private IPoolManager _poolManager;
+        [Inject] private IPoolManager _poolManager = default!;
         
         private void Start()
         {
@@ -32,7 +30,7 @@ namespace SunnysideIsland.Environment
         {
             if (_woodPrefab == null) return;
 
-            // 풀이 없으면 생성
+            // ????놁쑝硫??앹꽦
             if (_poolManager != null && _poolManager.GetPool(_woodPoolName) == null)
             {
                 _poolManager.CreatePool(_woodPoolName, _woodPrefab, 30, 100);

@@ -18,10 +18,11 @@ namespace SunnysideIsland.Building
         [SerializeField] private int _maxCampfires = 3;
 
         [Header("=== References ===")]
+        [Inject(Optional = true)]
         [SerializeField] private TimeManager _timeManager;
         [SerializeField] private Transform _campfireParent;
 
-        [Inject] private BuildingDatabase _buildingDatabase;
+        [Inject] private BuildingDatabase _buildingDatabase = default!;
 
         private readonly List<Campfire> _activeCampfires = new List<Campfire>();
         private int _previousHour = -1;
@@ -44,9 +45,7 @@ namespace SunnysideIsland.Building
             }
 
             if (_timeManager == null)
-            {
-                _timeManager = FindFirstObjectByType<TimeManager>();
-            }
+                DIContainer.TryResolve(out _timeManager);
         }
 
         private void Start()

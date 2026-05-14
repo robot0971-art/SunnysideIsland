@@ -240,7 +240,7 @@ namespace SunnysideIsland.Gathering
         private void FindAllResources()
         {
             _resources.Clear();
-            _resources.AddRange(FindObjectsOfType<GatherableResource>());
+            _resources.AddRange(FindObjectsByType<GatherableResource>(FindObjectsSortMode.None));
         }
         
         private void OnDayStarted(DayStartedEvent evt)

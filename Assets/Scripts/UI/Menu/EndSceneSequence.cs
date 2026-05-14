@@ -2,6 +2,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using SunnysideIsland.Core;
+using SunnysideIsland.Input;
 
 namespace SunnysideIsland.UI.Menu
 {
@@ -72,7 +73,7 @@ namespace SunnysideIsland.UI.Menu
                 return;
             }
 
-            if (Input.GetMouseButtonDown(0) || Input.anyKeyDown)
+            if (GameInput.GetMouseButtonDown(0) || GameInput.AnyKeyDown())
             {
                 GameManager.Instance?.ReturnToMainMenu();
             }

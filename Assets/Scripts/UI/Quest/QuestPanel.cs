@@ -19,8 +19,8 @@ namespace SunnysideIsland.UI.Quest
         [Header("=== Buttons ===")]
         [SerializeField] private Button _closeButton;
 
-        [Inject]
-        private QuestSystem _questSystem;
+        [Inject(Optional = true)]
+        private QuestSystem _questSystem = default!;
 
         private Canvas _questCanvas;
         private bool _questCanvasOverrideSorting;
@@ -134,10 +134,6 @@ namespace SunnysideIsland.UI.Quest
             if (_questSystem == null)
             {
                 DIContainer.TryResolve(out _questSystem);
-                if (_questSystem == null)
-                {
-                    _questSystem = FindFirstObjectByType<QuestSystem>(FindObjectsInactive.Include);
-                }
             }
 
             if (_questSystem == null)

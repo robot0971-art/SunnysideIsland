@@ -1,6 +1,8 @@
 using UnityEngine;
+using DI;
 using SunnysideIsland.Events;
 using SunnysideIsland.Animal;
+using SunnysideIsland.Input;
 using SunnysideIsland.Pool;
 using SunnysideIsland.Inventory;
 using SunnysideIsland.Core;
@@ -26,6 +28,12 @@ namespace SunnysideIsland.Items
         private EggPoint _parentEggPoint;
         private int _spawnDay = -1;
         private bool _isHatching = false;
+
+        [Inject(Optional = true)]
+        private TimeManager _timeManager = default!;
+
+        [Inject(Optional = true)]
+        private IInventorySystem _inventorySystem = default!;
         
         public string ItemId => _itemId;
         public int Amount => _amount;
@@ -38,12 +46,14 @@ namespace SunnysideIsland.Items
             _parentEggPoint = null;
             _spawnDay = -1;
             _isHatching = false;
+            DIContainer.Inject(this);
+            InitializeSpawnDay();
         }
         
         public override void OnReturnToPool()
         {
             base.OnReturnToPool();
-            // EggPoint에게 알리기
+            // EggPoint?�게 ?�리�?
             if (_parentEggPoint != null)
             {
                 _parentEggPoint.OnEggCollected();
@@ -58,20 +68,43 @@ namespace SunnysideIsland.Items
         
         private void Start()
         {
+            DIContainer.Inject(this);
             if (_playerLayer == 0)
                 _playerLayer = LayerMask.GetMask("Player");
             
-            // 부화 시작일 설정
+            // 부???�작???�정
             if (_spawnDay < 0)
             {
-                var timeManager = UnityEngine.Object.FindObjectOfType<TimeManager>();
-                if (timeManager != null)
+                if (_timeManager == null)
                 {
-                    _spawnDay = timeManager.CurrentDay;
+                    DIContainer.TryResolve(out _timeManager);
+                }
+
+                if (_timeManager != null)
+                {
+                    _spawnDay = _timeManager.CurrentDay;
                 }
             }
             
             SubscribeToEvents();
+        }
+
+        private void InitializeSpawnDay()
+        {
+            if (_spawnDay >= 0)
+            {
+                return;
+            }
+
+            if (_timeManager == null)
+            {
+                DIContainer.TryResolve(out _timeManager);
+            }
+
+            if (_timeManager != null)
+            {
+                _spawnDay = _timeManager.CurrentDay;
+            }
         }
         
         private void OnDestroy()
@@ -93,10 +126,10 @@ namespace SunnysideIsland.Items
         {
             if (_isHatching) return;
             
-            // 인벤토리에 있으면 부화하지 않음
+            // ?�벤?�리???�으�?부?�하지 ?�음
             if (transform.parent != null && transform.parent.name.Contains("Inventory")) return;
             
-            // 하루가 지났는지 확인
+            // ?�루가 지?�는지 ?�인
             if (_spawnDay >= 0 && evt.Day >= _spawnDay + _hatchAfterDays)
             {
                 Hatch();
@@ -110,11 +143,11 @@ namespace SunnysideIsland.Items
             
             Debug.Log($"[EggItem] Hatching at {transform.position}!");
             
-            // 흰닭/까만닭 랜덤 선택
+            // ?�닭/까만???�덤 ?�택
             bool isWhite = Random.value > 0.5f;
             GameObject chickenPrefab = isWhite ? _whiteChickenPrefab : _blackChickenPrefab;
             
-            // 프리팹이 할당되지 않았으면 Resources에서 로드
+            // ?�리?�이 ?�당?��? ?�았?�면 Resources?�서 로드
             if (chickenPrefab == null)
             {
                 string prefabName = isWhite ? "Prefabs/Animals/Chicken_White" : "Prefabs/Animals/Chicken_Black";
@@ -125,11 +158,11 @@ namespace SunnysideIsland.Items
             {
                 var chicken = Instantiate(chickenPrefab, transform.position, Quaternion.identity);
                 
-                // 병아리로 초기화
+                // 병아리로 초기??
                 var chickenAI = chicken.GetComponent<AnimalBaseAI>();
                 if (chickenAI != null)
                 {
-                    // 리플렉션으로 private 필드 설정
+                    // 리플?�션?�로 private ?�드 ?�정
                     var isBabyField = typeof(AnimalBaseAI).GetField("_isBaby", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     if (isBabyField != null)
                     {
@@ -145,7 +178,7 @@ namespace SunnysideIsland.Items
                 Debug.LogWarning("[EggItem] Chicken prefab not found!");
             }
             
-            // Egg 제거 (Pool로 반환)
+            // Egg ?�거 (Pool�?반환)
             if (_parentEggPoint != null)
             {
                 _parentEggPoint.OnEggCollected();
@@ -163,7 +196,7 @@ namespace SunnysideIsland.Items
 
             if (!_canPickup) return;
             
-            // 플레이어 찾기
+            // ?�레?�어 찾기
             if (_playerTransform == null)
             {
                 var player = GameObject.FindGameObjectWithTag("Player");
@@ -171,14 +204,14 @@ namespace SunnysideIsland.Items
                     _playerTransform = player.transform;
             }
             
-            // 플레이어와의 거리 체크
+            // ?�레?�어?�??거리 체크
             if (_playerTransform != null)
             {
                 float distance = Vector3.Distance(transform.position, _playerTransform.position);
                 if (distance <= _pickupRange)
                 {
-                    // 플레이어가 E 키를 누르면 줍기
-                    if (Input.GetKeyDown(KeyCode.E))
+                    // ?�레?�어가 E ?��? ?�르�?줍기
+                    if (GameInput.GetKeyDown(KeyCode.E))
                     {
                         TryPickup();
                     }
@@ -190,14 +223,18 @@ namespace SunnysideIsland.Items
         {
             if (!_canPickup) return;
             
-            // 인벤토리 시스템 찾기
-            var inventory = FindObjectOfType<InventorySystem>();
-            if (inventory != null)
+            // ?�벤?�리 ?�스??찾기
+            if (_inventorySystem == null)
             {
-                bool added = inventory.AddItem(_itemId, _amount);
+                DIContainer.TryResolve(out _inventorySystem);
+            }
+
+            if (_inventorySystem != null)
+            {
+                bool added = _inventorySystem.AddItem(_itemId, _amount);
                 if (added)
                 {
-                    // 수확 애니메이션 재생
+                    // ?�확 ?�니메이???�생
                     if (_playerTransform != null)
                     {
                         var animator = _playerTransform.GetComponent<Animator>();
@@ -207,7 +244,7 @@ namespace SunnysideIsland.Items
                         }
                     }
 
-                    // 이벤트 발행
+                    // ?�벤??발행
                     EventBus.Publish(new ItemCollectedEvent 
                     { 
                         ItemId = _itemId, 
@@ -215,7 +252,7 @@ namespace SunnysideIsland.Items
                         Position = transform.position 
                     });
                     
-                    // 풀에 반환
+                    // ?�??반환
                     ReturnToPool();
                 }
             }
@@ -229,8 +266,8 @@ namespace SunnysideIsland.Items
         {
             if (((1 << other.gameObject.layer) & _playerLayer) != 0)
             {
-                // 플레이어 근처에 왔을 때 UI 표시 가능
-                // 예: "E를 눌러 줍기"
+                // ?�레?�어 근처???�을 ??UI ?�시 가??
+                // ?? "E�??�러 줍기"
             }
         }
         

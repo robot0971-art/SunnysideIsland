@@ -68,7 +68,7 @@ public class InventorySetupEditor : EditorWindow
     
     private static T FindOrCreate<T>(string name) where T : MonoBehaviour
     {
-        var obj = FindObjectOfType<T>();
+        var obj = Object.FindFirstObjectByType<T>();
         if (obj == null)
         {
             var go = new GameObject(name);

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace SunnysideIsland.Core
@@ -31,7 +31,6 @@ namespace SunnysideIsland.Core
         private readonly List<IOptimizedUpdate> _pendingRemove = new List<IOptimizedUpdate>();
         
         private bool _isIterating = false;
-        private float _fixedAccumulator = 0f;
         
         public void Register(IOptimizedUpdate updateable)
         {

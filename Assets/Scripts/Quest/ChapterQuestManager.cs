@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using DI;
 using SunnysideIsland.Core;
 using SunnysideIsland.Events;
 using Newtonsoft.Json.Linq;
@@ -8,18 +9,18 @@ using Newtonsoft.Json.Linq;
 namespace SunnysideIsland.Quest
 {
     /// <summary>
-    /// 챕터 타입
+    /// 챕터 ?�??
     /// </summary>
     public enum ChapterType
     {
-        Chapter1, // Day 1-3: 생존의 시작
-        Chapter2, // Day 4-7: 섬 개척
+        Chapter1, // Day 1-3: ?�존???�작
+        Chapter2, // Day 4-7: ??개척
         Chapter3, // Day 8-14: 마을 건설
-        Chapter4  // Day 15-28: 관광 도시 완성
+        Chapter4  // Day 15-28: 관�??�시 ?�성
     }
 
     /// <summary>
-    /// 챕터 데이터
+    /// 챕터 ?�이??
     /// </summary>
     [Serializable]
     public class ChapterData
@@ -35,8 +36,8 @@ namespace SunnysideIsland.Quest
     }
 
     /// <summary>
-    /// 챕터 퀘스트 관리자
-    /// 모든 메인 퀘스트와 챕터 진행을 관리
+    /// 챕터 ?�스??관리자
+    /// 모든 메인 ?�스?��? 챕터 진행??관�?
     /// </summary>
     public class ChapterQuestManager : MonoBehaviour, ISaveable
     {
@@ -47,8 +48,11 @@ namespace SunnysideIsland.Quest
         [SerializeField] private ChapterType _currentChapter = ChapterType.Chapter1;
         [SerializeField] private int _currentDay = 1;
         
-        private QuestSystem _questSystem;
-        private TimeManager _timeManager;
+        [Inject(Optional = true)]
+        private QuestSystem _questSystem = default!;
+
+        [Inject(Optional = true)]
+        private TimeManager _timeManager = default!;
         
         public string SaveKey => "ChapterQuestManager";
         public ChapterType CurrentChapter => _currentChapter;
@@ -63,8 +67,9 @@ namespace SunnysideIsland.Quest
         
         private void Start()
         {
-            _questSystem = DI.DIContainer.Resolve<QuestSystem>();
-            _timeManager = DI.DIContainer.Resolve<TimeManager>();
+            DIContainer.Inject(this);
+            DIContainer.TryResolve(out _questSystem);
+            DIContainer.TryResolve(out _timeManager);
             
             EventBus.Subscribe<DayStartedEvent>(OnDayStartedEvent);
             EventBus.Subscribe<QuestCompletedEvent>(OnQuestCompleted);
@@ -80,7 +85,7 @@ namespace SunnysideIsland.Quest
         {
             _currentDay = evt.Day;
             
-            // 새로운 챕터 시작 체크
+            // ?�로??챕터 ?�작 체크
             foreach (var chapter in _chapters)
             {
                 if (chapter.StartDay == evt.Day && chapter.Chapter > _currentChapter)
@@ -90,22 +95,18 @@ namespace SunnysideIsland.Quest
                 }
             }
             
-            // 일일 퀘스트 생성
+            // ?�일 ?�스???�성
             GenerateDailyQuests();
         }
         
         /// <summary>
-        /// 챕터 시작
+        /// 챕터 ?�작
         /// </summary>
         public void StartChapter(ChapterType chapter)
         {
             if (_questSystem == null)
             {
                 DI.DIContainer.TryResolve(out _questSystem);
-                if (_questSystem == null)
-                {
-                    _questSystem = FindFirstObjectByType<QuestSystem>(FindObjectsInactive.Include);
-                }
             }
 
             _currentChapter = chapter;
@@ -113,7 +114,7 @@ namespace SunnysideIsland.Quest
             
             if (chapterData == null) return;
             
-            // 메인 퀘스트 자동 수락
+            // 메인 ?�스???�동 ?�락
             if (chapterData.QuestIds != null)
             {
                 foreach (var questId in chapterData.QuestIds)
@@ -135,7 +136,7 @@ namespace SunnysideIsland.Quest
         }
         
         /// <summary>
-        /// 챕터 완료
+        /// 챕터 ?�료
         /// </summary>
         public void CompleteChapter(ChapterType chapter)
         {
@@ -156,7 +157,7 @@ namespace SunnysideIsland.Quest
         }
         
         /// <summary>
-        /// 퀘스트 완료 시 처리
+        /// ?�스???�료 ??처리
         /// </summary>
         private void OnQuestCompleted(QuestCompletedEvent evt)
         {
@@ -164,14 +165,14 @@ namespace SunnysideIsland.Quest
         }
         
         /// <summary>
-        /// 챕터 완료 체크
+        /// 챕터 ?�료 체크
         /// </summary>
         private void CheckChapterCompletion()
         {
             var chapterData = GetChapterData(_currentChapter);
             if (chapterData == null || chapterData.IsCompleted) return;
             
-            // 모든 메인 퀘스트 완료 체크
+            // 모든 메인 ?�스???�료 체크
             if (chapterData.QuestIds != null)
             {
                 bool allCompleted = true;
@@ -192,11 +193,11 @@ namespace SunnysideIsland.Quest
         }
         
         /// <summary>
-        /// 일일 퀘스트 생성
+        /// ?�일 ?�스???�성
         /// </summary>
         private void GenerateDailyQuests()
         {
-            // 현재 챕터의 서브 퀘스트 중 랜덤으로 1-2개 수락
+            // ?�재 챕터???�브 ?�스??�??�덤?�로 1-2�??�락
             var chapterData = GetChapterData(_currentChapter);
             if (chapterData?.SubQuestIds != null)
             {
@@ -209,7 +210,7 @@ namespace SunnysideIsland.Quest
                     }
                 }
                 
-                // 랜덤으로 1-2개 수락
+                // ?�덤?�로 1-2�??�락
                 int count = UnityEngine.Random.Range(1, Mathf.Min(3, availableQuests.Count + 1));
                 for (int i = 0; i < count && availableQuests.Count > 0; i++)
                 {
@@ -221,7 +222,7 @@ namespace SunnysideIsland.Quest
         }
         
         /// <summary>
-        /// 챕터 데이터 가져오기
+        /// 챕터 ?�이??가?�오�?
         /// </summary>
         private ChapterData GetChapterData(ChapterType chapter)
         {
@@ -234,7 +235,7 @@ namespace SunnysideIsland.Quest
         }
         
         /// <summary>
-        /// 서브 퀘스트 수락
+        /// ?�브 ?�스???�락
         /// </summary>
         public void AcceptSubQuest(string questId)
         {
@@ -242,7 +243,7 @@ namespace SunnysideIsland.Quest
         }
         
         /// <summary>
-        /// 현재 챕터의 진행도 (0-1)
+        /// ?�재 챕터??진행??(0-1)
         /// </summary>
         public float GetChapterProgress()
         {
@@ -278,7 +279,7 @@ namespace SunnysideIsland.Quest
                 _currentChapter = data.CurrentChapter;
                 _currentDay = data.CurrentDay;
                 
-                // 챕터 완료 상태 복원
+                // 챕터 ?�료 ?�태 복원
                 for (int i = 0; i < data.ChapterCompleted.Length && i < _chapters.Count; i++)
                 {
                     _chapters[i].IsCompleted = data.ChapterCompleted[i];
@@ -298,7 +299,7 @@ namespace SunnysideIsland.Quest
     }
     
     /// <summary>
-    /// 챕터 퀘스트 저장 데이터
+    /// 챕터 ?�스???�???�이??
     /// </summary>
     [Serializable]
     public class ChapterQuestSaveData
@@ -309,7 +310,7 @@ namespace SunnysideIsland.Quest
     }
     
     /// <summary>
-    /// 챕터 시작 이벤트
+    /// 챕터 ?�작 ?�벤??
     /// </summary>
     public class ChapterStartedEvent
     {
@@ -319,7 +320,7 @@ namespace SunnysideIsland.Quest
     }
     
     /// <summary>
-    /// 챕터 완료 이벤트
+    /// 챕터 ?�료 ?�벤??
     /// </summary>
     public class ChapterCompletedEvent
     {

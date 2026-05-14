@@ -16,6 +16,7 @@ namespace SunnysideIsland.Tools
                 return;
             }
 
+            #pragma warning disable CS0618
             GameObjectUtility.SetStaticEditorFlags(ground, StaticEditorFlags.NavigationStatic);
             foreach (Transform child in ground.transform)
             {
@@ -30,6 +31,7 @@ namespace SunnysideIsland.Tools
                     GameObjectUtility.SetStaticEditorFlags(tilemap.gameObject, StaticEditorFlags.NavigationStatic);
                 }
             }
+            #pragma warning restore CS0618
 
             EditorApplication.ExecuteMenuItem("Window/AI/Navigation");
 

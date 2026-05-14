@@ -29,7 +29,7 @@ namespace SunnysideIsland.UI.Menu
         [SerializeField] private TextMeshProUGUI _versionText;
 
         [Inject(Optional = true)]
-        private GameManager _gameManager;
+        private GameManager _gameManager = default!;
 
         private SaveSystem _saveSystem;
 

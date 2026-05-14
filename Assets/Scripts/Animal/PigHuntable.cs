@@ -1,4 +1,4 @@
-using DI;
+﻿using DI;
 using SunnysideIsland.GameData;
 using SunnysideIsland.Items;
 using SunnysideIsland.Pool;
@@ -32,26 +32,26 @@ namespace SunnysideIsland.Animal
         [Header("=== Flash Effect ===")]
         [SerializeField] private Material _flashMaterial;
         [SerializeField] private float _flashDuration = 0.1f;
-        [Tooltip("반짝임 강도 (0 = 없음, 1 = 최대)")]
+        [Tooltip("諛섏쭩??媛뺣룄 (0 = ?놁쓬, 1 = 理쒕?)")]
         [Range(0f, 1f)]
         [SerializeField] private float _flashAmount = 1f;
-        [Tooltip("반짝임 색상")]
+        [Tooltip("諛섏쭩???됱긽")]
         [SerializeField] private Color _flashColor = Color.white;
 
         [Header("=== Timing Controls ===")]
-        [Tooltip("피격 반응 지연 시간 - 플레이어 애니메이션과 맞추기 위한 딜레이")]
+        [Tooltip("Hit reaction delay before applying feedback.")]
         [SerializeField] private float _hitReactionDelay = 0f;
-        [Tooltip("데미지 적용 지연 시간 - 실제 피격 처리 전 딜레이")]
+        [Tooltip("Delay before applying damage.")]
         [SerializeField] private float _damageApplyDelay = 0f;
-        [Tooltip("반짝임 효과 시작 지연 시간")]
+        [Tooltip("諛섏쭩???④낵 ?쒖옉 吏???쒓컙")]
         [SerializeField] private float _flashDelay = 0f;
-        [Tooltip("죽음 처리 지연 시간 - 마지막 피격 후 죽음까지 딜레이")]
+        [Tooltip("Delay before death handling.")]
         [SerializeField] private float _deathDelay = 0f;
-        [Tooltip("죽음 이펙트 지연 시간 - 먼지 이펙트 등 발생 지연")]
+        [Tooltip("Delay before death effects.")]
         [SerializeField] private float _deathEffectDelay = 0f;
 
-        [Inject(Optional = true)] private IPoolManager _poolManager;
-        [Inject(Optional = true)] private GameDataClass _gameData;
+        [Inject(Optional = true)] private IPoolManager _poolManager = default!;
+        [Inject(Optional = true)] private GameDataClass _gameData = default!;
 
         private AnimalBaseAI _animalBaseAI;
         private Collider2D[] _colliders;
@@ -96,13 +96,13 @@ namespace SunnysideIsland.Animal
 
         private System.Collections.IEnumerator ProcessHit()
         {
-            // 1단계: 피격 반응 지연 (플레이어 애니메이션과 동기화)
+            // 1?④퀎: ?쇨꺽 諛섏쓳 吏??(?뚮젅?댁뼱 ?좊땲硫붿씠?섍낵 ?숆린??
             if (_hitReactionDelay > 0)
             {
                 yield return new WaitForSeconds(_hitReactionDelay);
             }
 
-            // 2단계: 데미지 적용 지연
+            // 2?④퀎: ?곕?吏 ?곸슜 吏??
             if (_damageApplyDelay > 0)
             {
                 yield return new WaitForSeconds(_damageApplyDelay);
@@ -110,7 +110,7 @@ namespace SunnysideIsland.Animal
 
             _currentHits++;
 
-            // 3단계: 반짝임 효과 (지연 적용)
+            // 3?④퀎: 諛섏쭩???④낵 (吏???곸슜)
             if (_flashDelay > 0)
             {
                 StartCoroutine(TriggerFlashWithDelay());
@@ -120,7 +120,7 @@ namespace SunnysideIsland.Animal
                 TriggerFlashEffect();
             }
 
-            // 4단계: 죽음 체크 및 처리
+            // 4?④퀎: 二쎌쓬 泥댄겕 諛?泥섎━
             if (_currentHits >= Mathf.Max(1, _hitsToKill))
             {
                 if (_deathDelay > 0)
@@ -361,13 +361,13 @@ namespace SunnysideIsland.Animal
                     Material[] flashMaterials = new Material[_spriteRenderers[i].materials.Length];
                     for (int j = 0; j < flashMaterials.Length; j++)
                     {
-                        // 머터리얼 인스턴스 생성 (속성 변경을 위해)
+                        // 癒명꽣由ъ뼹 ?몄뒪?댁뒪 ?앹꽦 (?띿꽦 蹂寃쎌쓣 ?꾪빐)
                         Material materialInstance = new Material(_flashMaterial);
                         
-                        // Flash Amount 설정
+                        // Flash Amount ?ㅼ젙
                         materialInstance.SetFloat("_Flash_Amount", _flashAmount);
                         
-                        // 색상 설정 (White 프로퍼티 사용)
+                        // ?됱긽 ?ㅼ젙 (White ?꾨줈?쇳떚 ?ъ슜)
                         materialInstance.SetColor("White", _flashColor);
                         
                         flashMaterials[j] = materialInstance;

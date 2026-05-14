@@ -24,9 +24,9 @@ namespace SunnysideIsland.UI.Menu
         [SerializeField] private TextMeshProUGUI _playTimeText;
         
         [Inject]
-        private GameManager _gameManager;
+        private GameManager _gameManager = default!;
         [Inject]
-        private SaveSystem _saveSystem;
+        private SaveSystem _saveSystem = default!;
         
         protected override void Awake()
         {
@@ -78,7 +78,7 @@ namespace SunnysideIsland.UI.Menu
         {
             if (_playTimeText != null && _saveSystem != null)
             {
-                _playTimeText.text = $"플레이 시간: {_saveSystem.GetFormattedPlayTime()}";
+                _playTimeText.text = $"?�레???�간: {_saveSystem.GetFormattedPlayTime()}";
             }
         }
         

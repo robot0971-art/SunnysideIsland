@@ -1,34 +1,33 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace SunnysideIsland.Building
 {
     /// <summary>
-    /// 연기 파티클 생성기
-    /// 불에서 올라가는 부드러운 연기
+    /// ?곌린 ?뚰떚???앹꽦湲?    /// 遺덉뿉???щ씪媛??遺?쒕윭???곌린
     /// </summary>
     [RequireComponent(typeof(ParticleSystem))]
     public class SmokeParticles : MonoBehaviour
     {
         [Header("=== Smoke Settings ===")]
-        [Tooltip("연기 색상 (시작)")]
+        [Tooltip("?곌린 ?됱긽 (?쒖옉)")]
         [SerializeField] private Color _smokeColorStart = new Color(0.3f, 0.3f, 0.3f, 0.4f);
         
-        [Tooltip("연기 색상 (끝)")]
+        [Tooltip("?곌린 ?됱긽 (??")]
         [SerializeField] private Color _smokeColorEnd = new Color(0.5f, 0.5f, 0.5f, 0f);
         
-        [Tooltip("연기 생성 간격")]
+        [Tooltip("?곌린 ?앹꽦 媛꾧꺽")]
         [SerializeField] [Range(0.05f, 0.5f)] private float _emissionRate = 0.15f;
         
-        [Tooltip("연기 크기")]
+        [Tooltip("?곌린 ?ш린")]
         [SerializeField] [Range(0.1f, 0.5f)] private float _smokeSize = 0.25f;
         
-        [Tooltip("연기 수명")]
+        [Tooltip("?곌린 ?섎챸")]
         [SerializeField] [Range(1f, 4f)] private float _lifetime = 2.5f;
         
-        [Tooltip("연기 상승 속도")]
+        [Tooltip("?곌린 ?곸듅 ?띾룄")]
         [SerializeField] [Range(0.3f, 1.5f)] private float _riseSpeed = 0.6f;
         
-        [Tooltip("바람 영향")]
+        [Tooltip("諛붾엺 ?곹뼢")]
         [SerializeField] [Range(0f, 0.5f)] private float _windEffect = 0.15f;
         
         private ParticleSystem _particleSystem;
@@ -60,9 +59,9 @@ namespace SunnysideIsland.Building
             main.startSize = _smokeSize;
             main.maxParticles = 30;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
-            main.gravityModifier = -0.05f; // 천천히 위로
+            main.gravityModifier = -0.05f; // 泥쒖쿇???꾨줈
             
-            // 색상 그라데이션
+            // ?됱긽 洹몃씪?곗씠??            Gradient colorGrad = new Gradient();
             Gradient colorGrad = new Gradient();
             colorGrad.SetKeys(
                 new GradientColorKey[] {
@@ -82,22 +81,23 @@ namespace SunnysideIsland.Building
             emission.enabled = true;
             emission.rateOverTime = _emissionRate;
             
-            // Shape - 불 위에서
-            shape.enabled = true;
+            // Shape - 遺??꾩뿉??            shape.enabled = true;
             shape.shapeType = ParticleSystemShapeType.Circle;
             shape.radius = 0.1f;
             shape.position = new Vector3(0, 0.3f, 0);
             shape.rotation = new Vector3(0, 0, 0);
             
-            // Velocity Over Lifetime은 사용하지 않음 (문제 방지)
-            velocityOverLifetime.enabled = false;
+            // Velocity Over Lifetime? ?ъ슜?섏? ?딆쓬 (臾몄젣 諛⑹?)
+            velocityOverLifetime.enabled = true;
+            velocityOverLifetime.space = ParticleSystemSimulationSpace.Local;
+            velocityOverLifetime.y = new ParticleSystem.MinMaxCurve(_riseSpeed * 0.7f, _riseSpeed * 1.3f);
+            velocityOverLifetime.x = new ParticleSystem.MinMaxCurve(-_windEffect, _windEffect);
             
             // Color over lifetime
             colorOverLifetime.enabled = true;
             colorOverLifetime.color = new ParticleSystem.MinMaxGradient(colorGrad);
             
-            // Size over lifetime - 커지면서 흩어짐
-            sizeOverLifetime.enabled = true;
+            // Size over lifetime - 而ㅼ?硫댁꽌 ?⑹뼱吏?            sizeOverLifetime.enabled = true;
             AnimationCurve sizeCurve = new AnimationCurve();
             sizeCurve.AddKey(0f, 0.5f);
             sizeCurve.AddKey(0.3f, 0.8f);
@@ -108,10 +108,9 @@ namespace SunnysideIsland.Building
             // Renderer
             renderer.renderMode = ParticleSystemRenderMode.Billboard;
             renderer.sortMode = ParticleSystemSortMode.OldestInFront;
-            renderer.sortingOrder = 5; // 불보다 위에
+            renderer.sortingOrder = 5; // 遺덈낫???꾩뿉
             
-            // 소프트 원형 텍스처
-            if (renderer.material == null)
+            // ?뚰봽???먰삎 ?띿뒪泥?            if (renderer.material == null)
             {
                 Texture2D tex = ParticleTextureGenerator.CreateCircleTexture(64, true);
                 renderer.material = ParticleTextureGenerator.CreateSimpleParticleMaterial(tex);
@@ -122,7 +121,7 @@ namespace SunnysideIsland.Building
         
         public void StartSmoke()
         {
-            if (_particleSystem == null) return;
+            if (_particleSystem == null || _isPlaying) return;
             
             _particleSystem.Play();
             _isPlaying = true;
@@ -130,14 +129,14 @@ namespace SunnysideIsland.Building
         
         public void StopSmoke()
         {
-            if (_particleSystem == null) return;
+            if (_particleSystem == null || !_isPlaying) return;
             
             _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             _isPlaying = false;
         }
         
         /// <summary>
-        /// 바람 방향 설정
+        /// 諛붾엺 諛⑺뼢 ?ㅼ젙
         /// </summary>
         public void SetWindDirection(float windX)
         {

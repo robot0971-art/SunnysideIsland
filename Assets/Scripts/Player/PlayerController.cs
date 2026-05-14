@@ -1,10 +1,11 @@
-using DI;
+﻿using DI;
 using SunnysideIsland.Building;
 using SunnysideIsland.Core;
 using SunnysideIsland.Environment;
 using SunnysideIsland.Events;
 using SunnysideIsland.Farming;
 using SunnysideIsland.GameData;
+using SunnysideIsland.Input;
 using SunnysideIsland.Items;
 using SunnysideIsland.UI;
 using SunnysideIsland.Pool;
@@ -59,12 +60,12 @@ namespace SunnysideIsland.Player
         [SerializeField] private InputActionAsset _inputActions;
         private InputAction _moveAction;
 
-        [Inject(Optional = true)] private IUIManager _uiManager;
-        [Inject(Optional = true)] private BuildingSystem _buildingSystem;
-        [Inject(Optional = true)] private ICropSelectionSystem _cropSelectionSystem;
-        [Inject(Optional = true)] private FarmingManager _farmingManager;
-        [Inject(Optional = true)] private Grid _grid;
-        [Inject(Optional = true)] private IPoolManager _poolManager;
+        [Inject(Optional = true)] private IUIManager _uiManager = default!;
+        [Inject(Optional = true)] private BuildingSystem _buildingSystem = default!;
+        [Inject(Optional = true)] private ICropSelectionSystem _cropSelectionSystem = default!;
+        [Inject(Optional = true)] private FarmingManager _farmingManager = default!;
+        [Inject(Optional = true)] private Grid _grid = default!;
+        [Inject(Optional = true)] private IPoolManager _poolManager = default!;
 
         private IUIManager UIManager
         {
@@ -96,7 +97,6 @@ namespace SunnysideIsland.Player
         private bool _isSprinting;
         private bool _isRolling;
         private bool _isAttacking;
-        private bool _isHurt;
         private bool _isDead;
         private float _rollTimer;
         private float _rollCooldownTimer;
@@ -167,7 +167,7 @@ namespace SunnysideIsland.Player
 
         private void Start()
         {
-            // DI 주입 실행
+            // DI 二쇱엯 ?ㅽ뻾
             DIContainer.Inject(this);
 
             if (_navMeshAgent != null)
@@ -247,7 +247,7 @@ namespace SunnysideIsland.Player
                 }
                 else
                 {
-                    inputVector = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+                    inputVector = new Vector2(GameInput.GetAxisRaw("Horizontal"), GameInput.GetAxisRaw("Vertical"));
                 }
 
                 if (inputVector.sqrMagnitude > 0.01f)
@@ -293,7 +293,7 @@ namespace SunnysideIsland.Player
             _canMove = false;
             _rb.linearVelocity = Vector2.zero;
 
-            // 획득 애니메이션이 있다면 여기서 트리거 (예: "PickUp")
+            // ?띾뱷 ?좊땲硫붿씠?섏씠 ?덈떎硫??ш린???몃━嫄?(?? "PickUp")
             // _animator.SetTrigger("PickUp");
 
             yield return new WaitForSeconds(duration);
@@ -328,7 +328,7 @@ namespace SunnysideIsland.Player
             }
             else
             {
-                inputVector = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+                inputVector = new Vector2(GameInput.GetAxisRaw("Horizontal"), GameInput.GetAxisRaw("Vertical"));
             }
 
             _moveDirection = inputVector.normalized;
@@ -336,18 +336,18 @@ namespace SunnysideIsland.Player
             if (_moveDirection != Vector2.zero && !_isRolling)
                 _facingDirection = _moveDirection;
 
-            _isSprinting = Input.GetKey(KeyCode.LeftShift) && !_isRolling;
+            _isSprinting = GameInput.GetKey(KeyCode.LeftShift) && !_isRolling;
 
-            if (Input.GetKeyDown(KeyCode.Space) && CanRoll() && !_isSwimming)
+            if (GameInput.GetKeyDown(KeyCode.Space) && CanRoll() && !_isSwimming)
                 Roll();
 
-            if (Input.GetKeyDown(_attackKey) && CanAttack())
+            if (GameInput.GetKeyDown(_attackKey) && CanAttack())
             {
                 StartCoroutine(AttackRoutine());
                 return;
             }
 
-            if (Input.GetKeyDown(KeyCode.I))
+            if (GameInput.GetKeyDown(KeyCode.I))
             {
                 Debug.Log($"[PlayerController] I key pressed. UIManager resolved: {UIManager != null}");
                 var uiMgr = UIManager;
@@ -374,7 +374,7 @@ namespace SunnysideIsland.Player
                 }
             }
 
-            if (Input.GetKeyDown(KeyCode.B))
+            if (GameInput.GetKeyDown(KeyCode.B))
             {
                 if (_buildingSystem != null)
                 {
@@ -382,11 +382,11 @@ namespace SunnysideIsland.Player
                 }
             }
 
-            if (Input.GetKeyDown(KeyCode.E)) // 수영 중에도 아이템을 주울 수 있도록 !_isSwimming 제거
+            if (GameInput.GetKeyDown(KeyCode.E)) // ?섏쁺 以묒뿉???꾩씠?쒖쓣 二쇱슱 ???덈룄濡?!_isSwimming ?쒓굅
             {
                 bool workDone = TryInteract();
 
-                if (!workDone && !_isSwimming) // 땅에서만 가능한 행동들 (물주기, 구멍파기)
+                if (!workDone && !_isSwimming) // ?낆뿉?쒕쭔 媛?ν븳 ?됰룞??(臾쇱＜湲? 援щ찉?뚭린)
                 {
                     workDone = ExecuteWateringWithResult();
                     if (!workDone)
@@ -546,7 +546,7 @@ namespace SunnysideIsland.Player
             RaycastHit2D[] treeHits = Physics2D.CircleCastAll(origin, radius, _facingDirection, distance, _treeLayer);
             if (treeHits.Length > 0)
             {
-                if (treeHits[0].collider.TryGetComponent(out SunnysideIsland.Environment.Tree tree))
+                if (treeHits[0].collider.TryGetComponent(out HarvestableTree tree))
                 {
                     if (!tree.IsChopped)
                     {
@@ -571,7 +571,7 @@ namespace SunnysideIsland.Player
                         }
                         else
                         {
-                            Debug.LogWarning($"[PlayerController] {_cropSelectionSystem.SelectedCrop?.cropName} 수량이 부족합니다 (x{_cropSelectionSystem.GetCount(_cropSelectionSystem.SelectedIndex)})");
+                            Debug.LogWarning($"[PlayerController] {_cropSelectionSystem.SelectedCrop?.cropName} ?섎웾??遺議깊빀?덈떎 (x{_cropSelectionSystem.GetCount(_cropSelectionSystem.SelectedIndex)})");
                         }
                     }
                     else
@@ -765,7 +765,6 @@ namespace SunnysideIsland.Player
             _isSprinting = false;
             _isRolling = false;
             _isAttacking = false;
-            _isHurt = false;
             _moveDirection = Vector2.zero;
             _rb.linearVelocity = Vector2.zero;
 

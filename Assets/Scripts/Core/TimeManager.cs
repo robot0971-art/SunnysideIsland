@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using SunnysideIsland.Events;
+using SunnysideIsland.Input;
 using Newtonsoft.Json.Linq;
 
 namespace SunnysideIsland.Core
@@ -72,7 +73,7 @@ namespace SunnysideIsland.Core
             {
                 return;
             }
-            if (Input.GetKeyDown(KeyCode.N))
+            if (GameInput.GetKeyDown(KeyCode.N))
             {
                 AddDays(1);
                 EventBus.Publish(new DebugDaySkippedEvent

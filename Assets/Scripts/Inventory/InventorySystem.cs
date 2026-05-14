@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using DI;
 using SunnysideIsland.Core;
 using SunnysideIsland.Events;
 using SunnysideIsland.GameData;
@@ -10,7 +11,7 @@ using GameDataClass = SunnysideIsland.GameData.GameData;
 namespace SunnysideIsland.Inventory
 {
     /// <summary>
-    /// 인벤토리 시스템 인터페이스
+    /// ?몃깽?좊━ ?쒖뒪???명꽣?섏씠??
     /// </summary>
     public interface IInventorySystem
     {
@@ -29,17 +30,18 @@ namespace SunnysideIsland.Inventory
     }
 
     /// <summary>
-    /// 플레이어 인벤토리 시스템
+    /// ?뚮젅?댁뼱 ?몃깽?좊━ ?쒖뒪??
     /// </summary>
     public class InventorySystem : MonoBehaviour, IInventorySystem, ISaveable
     {
         [Header("=== Settings ===")]
         [SerializeField] private int _capacity = 40;
         [SerializeField] private int _quickSlotCount = 8;
+        [Inject(Optional = true)]
         [SerializeField] private GameDataClass _gameData;
 
 
-        private List<InventorySlot> _slots;
+        private List<InventorySlot> _slots = default!;
         private int[] _quickSlots;
 
 
@@ -64,10 +66,11 @@ namespace SunnysideIsland.Inventory
 
         private void Start()
         {
-            // GameData가 없으면 찾기
+            // GameData媛 ?놁쑝硫?李얘린
             if (_gameData == null)
             {
-                _gameData = FindObjectOfType<GameDataClass>();
+                DIContainer.Inject(this);
+                DIContainer.TryResolve(out _gameData);
                 if (_gameData == null)
                 {
                     Debug.LogWarning("[InventorySystem] GameData not found. Using default max stack size.");
@@ -86,12 +89,12 @@ namespace SunnysideIsland.Inventory
                 var wood = new ItemData
                 {
                     itemId = "wood",
-                    itemName = "나무",
+                    itemName = "?섎Т",
                     itemType = ItemType.Material,
                     maxStack = 99,
                     baseValue = 1,
                     canSell = true,
-                    description = "배를 만드는 데 필요한 나무",
+                    description = "諛곕? 留뚮뱶?????꾩슂???섎Т",
                     iconPath = ""
                 };
                 _gameData.items.Add(wood);
@@ -104,12 +107,12 @@ namespace SunnysideIsland.Inventory
                 var boat = new ItemData
                 {
                     itemId = "boat",
-                    itemName = "배",
+                    itemName = "Boat",
                     itemType = ItemType.Valuable,
                     maxStack = 1,
                     baseValue = 1000,
                     canSell = false,
-                    description = "섬을 탈출할 수 있는 배",
+                    description = "A boat that can be used to escape the island.",
                     iconPath = ""
                 };
                 _gameData.items.Add(boat);
@@ -121,12 +124,12 @@ namespace SunnysideIsland.Inventory
                 var milk = new ItemData
                 {
                     itemId = "milk",
-                    itemName = "우유",
+                    itemName = "?곗쑀",
                     itemType = ItemType.Consumable,
                     maxStack = 20,
                     baseValue = 25,
                     canSell = true,
-                    description = "소에게서 얻은 우유. 허기와 체력을 조금 회복한다.",
+                    description = "?뚯뿉寃뚯꽌 ?살? ?곗쑀. ?덇린? 泥대젰??議곌툑 ?뚮났?쒕떎.",
                     iconPath = "",
                     hungerRestore = 5,
                     healthRestore = 10,
@@ -141,12 +144,12 @@ namespace SunnysideIsland.Inventory
                 var pork = new ItemData
                 {
                     itemId = "pork",
-                    itemName = "돼지고기",
+                    itemName = "?쇱?怨좉린",
                     itemType = ItemType.Consumable,
                     maxStack = 20,
                     baseValue = 35,
                     canSell = true,
-                    description = "돼지에게서 얻은 고기입니다. 배고픔을 회복할 수 있습니다.",
+                    description = "?쇱??먭쾶???살? 怨좉린?낅땲?? 諛곌퀬?붿쓣 ?뚮났?????덉뒿?덈떎.",
                     iconPath = "",
                     hungerRestore = 15,
                     healthRestore = 0,
@@ -193,7 +196,7 @@ public bool AddItem(string itemId, int quantity = 1)
             int maxStack = GetMaxStack(itemId);
             int remaining = quantity;
 
-            // 기존 슬롯에 중첩 시도
+            // 湲곗〈 ?щ’??以묒꺽 ?쒕룄
 
             for (int i = 0; i < _capacity && remaining > 0; i++)
             {
@@ -207,7 +210,7 @@ public bool AddItem(string itemId, int quantity = 1)
                 }
             }
 
-            // 빈 슬롯에 추가
+            // 鍮??щ’??異붽?
 
             for (int i = 0; i < _capacity && remaining > 0; i++)
             {

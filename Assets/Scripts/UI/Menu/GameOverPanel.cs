@@ -21,7 +21,7 @@ namespace SunnysideIsland.UI.Menu
         [SerializeField] private string _fallbackSaveName = "death_autosave";
 
         [Inject(Optional = true)]
-        private SaveSystem _saveSystem;
+        private SaveSystem _saveSystem = default!;
 
         private Canvas _canvas;
         private bool _canvasOverrideSorting;

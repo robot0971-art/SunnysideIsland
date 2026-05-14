@@ -1,7 +1,8 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using DI;
 using SunnysideIsland.Quest;
 using SunnysideIsland.GameData;
 using SunnysideIsland.Events;
@@ -33,9 +34,13 @@ namespace SunnysideIsland.UI.Quest
         private SunnysideIsland.Quest.Quest _currentQuest;
         private readonly List<GameObject> _objectiveItems = new List<GameObject>();
         private readonly List<GameObject> _rewardItems = new List<GameObject>();
+
+        [Inject(Optional = true)]
+        private QuestSystem _questSystem = default!;
         
         private void Awake()
         {
+            DIContainer.Inject(this);
             _claimRewardButton?.onClick.AddListener(OnClaimRewardClicked);
             _abandonButton?.onClick.AddListener(OnAbandonClicked);
             Hide();
@@ -90,10 +95,10 @@ namespace SunnysideIsland.UI.Quest
         {
             return chapter switch
             {
-                ChapterType.Chapter1 => "챕터 1: 생존의 시작",
-                ChapterType.Chapter2 => "챕터 2: 섬 개척",
-                ChapterType.Chapter3 => "챕터 3: 마을 건설",
-                ChapterType.Chapter4 => "챕터 4: 관광 도시",
+                ChapterType.Chapter1 => "梨뺥꽣 1: ?앹〈???쒖옉",
+                ChapterType.Chapter2 => "梨뺥꽣 2: ??媛쒖쿃",
+                ChapterType.Chapter3 => "梨뺥꽣 3: 留덉쓣 嫄댁꽕",
+                ChapterType.Chapter4 => "梨뺥꽣 4: 愿愿??꾩떆",
                 _ => chapter.ToString()
             };
         }
@@ -158,12 +163,12 @@ namespace SunnysideIsland.UI.Quest
             
             if (reward.Gold > 0)
             {
-                CreateRewardItem("골드", $"{reward.Gold:N0} G");
+                CreateRewardItem("怨⑤뱶", $"{reward.Gold:N0} G");
             }
             
             if (reward.Experience > 0)
             {
-                CreateRewardItem("경험치", $"{reward.Experience}");
+                CreateRewardItem("Experience", $"{reward.Experience}");
             }
             
             if (reward.ItemIds != null && reward.ItemAmounts != null)
@@ -229,10 +234,14 @@ namespace SunnysideIsland.UI.Quest
         {
             if (string.IsNullOrEmpty(_currentQuestId)) return;
             
-            var questSystem = FindObjectOfType<QuestSystem>();
-            if (questSystem != null)
+            if (_questSystem == null)
             {
-                questSystem.ClaimReward(_currentQuestId);
+                DIContainer.TryResolve(out _questSystem);
+            }
+
+            if (_questSystem != null)
+            {
+                _questSystem.ClaimReward(_currentQuestId);
             }
             
             Hide();

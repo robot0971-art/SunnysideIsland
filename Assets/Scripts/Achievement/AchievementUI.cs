@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -8,7 +8,7 @@ using SunnysideIsland.UI;
 namespace SunnysideIsland.Achievement
 {
     /// <summary>
-    /// 업적 UI 패널
+    /// ?낆쟻 UI ?⑤꼸
     /// </summary>
     public class AchievementUI : UIPanel
     {
@@ -45,7 +45,7 @@ namespace SunnysideIsland.Achievement
         [SerializeField] private Button _closeButton;
 
         [Inject]
-        private AchievementManager _achievementManager;
+        private AchievementManager _achievementManager = default!;
 
         private AchievementType? _currentFilter = null;
         private string _selectedAchievementId;
@@ -78,7 +78,7 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 탭 버튼 설정
+        /// ??踰꾪듉 ?ㅼ젙
         /// </summary>
         private void SetupTabButtons()
         {
@@ -114,7 +114,7 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 상세 팝업 설정
+        /// ?곸꽭 ?앹뾽 ?ㅼ젙
         /// </summary>
         private void SetupDetailPopup()
         {
@@ -135,7 +135,7 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 이벤트 구독
+        /// ?대깽??援щ룆
         /// </summary>
         private void SubscribeEvents()
         {
@@ -145,7 +145,7 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 이벤트 구독 해제
+        /// ?대깽??援щ룆 ?댁젣
         /// </summary>
         private void UnsubscribeEvents()
         {
@@ -155,7 +155,7 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 필터 설정
+        /// ?꾪꽣 ?ㅼ젙
         /// </summary>
         private void SetFilter(AchievementType? type)
         {
@@ -168,7 +168,7 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 탭 색상 업데이트
+        /// ???됱긽 ?낅뜲?댄듃
         /// </summary>
         private void UpdateTabColors()
         {
@@ -180,7 +180,7 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 탭 버튼 색상 설정
+        /// ??踰꾪듉 ?됱긽 ?ㅼ젙
         /// </summary>
         private void SetTabButtonColor(Button button, bool isSelected)
         {
@@ -192,7 +192,7 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 업적 목록 새로고침
+        /// ?낆쟻 紐⑸줉 ?덈줈怨좎묠
         /// </summary>
         private void RefreshAchievementList()
         {
@@ -211,7 +211,7 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 필터링된 업적 목록 조회
+        /// ?꾪꽣留곷맂 ?낆쟻 紐⑸줉 議고쉶
         /// </summary>
         private List<AchievementData> GetFilteredAchievements()
         {
@@ -224,7 +224,7 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 업적 아이템 생성
+        /// ?낆쟻 ?꾩씠???앹꽦
         /// </summary>
         private void CreateAchievementItem(AchievementData achievement)
         {
@@ -304,7 +304,7 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 업적 목록 클리어
+        /// ?낆쟻 紐⑸줉 ?대━??
         /// </summary>
         private void ClearAchievementList()
         {
@@ -316,7 +316,7 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 업적 수량 텍스트 업데이트
+        /// ?낆쟻 ?섎웾 ?띿뒪???낅뜲?댄듃
         /// </summary>
         private void UpdateAchievementCount()
         {
@@ -327,18 +327,18 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 전체 진행률 업데이트
+        /// ?꾩껜 吏꾪뻾瑜??낅뜲?댄듃
         /// </summary>
         private void UpdateTotalProgress()
         {
             if (_totalProgressText != null && _achievementManager != null)
             {
-                _totalProgressText.text = $"달성: {_achievementManager.UnlockedCount}/{_achievementManager.TotalAchievements}";
+                _totalProgressText.text = $"?ъ꽦: {_achievementManager.UnlockedCount}/{_achievementManager.TotalAchievements}";
             }
         }
 
         /// <summary>
-        /// 업적 아이템 클릭 처리
+        /// ?낆쟻 ?꾩씠???대┃ 泥섎━
         /// </summary>
         private void OnAchievementItemClicked(string achievementId)
         {
@@ -347,7 +347,7 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 상세 팝업 표시
+        /// ?곸꽭 ?앹뾽 ?쒖떆
         /// </summary>
         private void ShowDetailPopup(string achievementId)
         {
@@ -393,7 +393,7 @@ namespace SunnysideIsland.Achievement
             {
                 if (!isUnlocked && achievement.Hidden)
                 {
-                    _detailDescription.text = "비밀 업적입니다.";
+                    _detailDescription.text = "鍮꾨? ?낆쟻?낅땲??";
                 }
                 else
                 {
@@ -424,7 +424,7 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 보상 목록 업데이트
+        /// 蹂댁긽 紐⑸줉 ?낅뜲?댄듃
         /// </summary>
         private void UpdateRewardList(AchievementData achievement)
         {
@@ -449,22 +449,22 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 보상 이름 조회
+        /// 蹂댁긽 ?대쫫 議고쉶
         /// </summary>
         private string GetRewardName(AchievementReward reward)
         {
             return reward.RewardType switch
             {
-                AchievementRewardType.Gold => "골드",
+                AchievementRewardType.Gold => "怨⑤뱶",
                 AchievementRewardType.Item => reward.RewardId,
-                AchievementRewardType.Experience => "경험치",
-                AchievementRewardType.UnlockFeature => "기능 해금",
-                _ => "보상"
+                AchievementRewardType.Experience => "Experience",
+                AchievementRewardType.UnlockFeature => "湲곕뒫 ?닿툑",
+                _ => "蹂댁긽"
             };
         }
 
         /// <summary>
-        /// 보상 아이템 클리어
+        /// 蹂댁긽 ?꾩씠???대━??
         /// </summary>
         private void ClearRewardItems()
         {
@@ -476,7 +476,7 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 상세 팝업 숨기기
+        /// ?곸꽭 ?앹뾽 ?④린湲?
         /// </summary>
         private void HideDetailPopup()
         {
@@ -487,7 +487,7 @@ namespace SunnysideIsland.Achievement
         }
 
         /// <summary>
-        /// 보상 수령 버튼 클릭 처리
+        /// 蹂댁긽 ?섎졊 踰꾪듉 ?대┃ 泥섎━
         /// </summary>
         private void OnClaimButtonClicked()
         {

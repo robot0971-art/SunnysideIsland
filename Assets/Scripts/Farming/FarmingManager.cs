@@ -21,8 +21,8 @@ namespace SunnysideIsland.Farming
         [Header("=== Crop Data ===")]
         [SerializeField] private CropData[] _availableCrops = new CropData[0];
 
-        [Inject(Optional = true)] private IInventorySystem _inventorySystem;
-        [Inject] private IPoolManager _poolManager;
+        [Inject(Optional = true)] private IInventorySystem _inventorySystem = default!;
+        [Inject] private IPoolManager _poolManager = default!;
 
         public string SaveKey => "FarmingManager";
 
@@ -97,7 +97,7 @@ namespace SunnysideIsland.Farming
         private void FindAllPlots()
         {
             _plots.Clear();
-            _plots.AddRange(FindObjectsOfType<FarmPlot>());
+            _plots.AddRange(FindObjectsByType<FarmPlot>(FindObjectsSortMode.None));
         }
 
         private void OnDayStarted(DayStartedEvent evt)

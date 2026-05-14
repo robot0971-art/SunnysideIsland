@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using DI;
 using SunnysideIsland.Events;
+using SunnysideIsland.Input;
 using SunnysideIsland.UI.Crafting;
 using SunnysideIsland.UI.Menu;
 using UnityEventSystem = UnityEngine.EventSystems.EventSystem;
@@ -320,7 +321,7 @@ namespace SunnysideIsland.UI
                 }
             }
 
-            if (Input.GetKeyDown(KeyCode.Escape))
+            if (GameInput.GetKeyDown(KeyCode.Escape))
             {
                 TrimClosedPanelsFromStack();
 

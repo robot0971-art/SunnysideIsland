@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using DI;
 using SunnysideIsland.Core;
 using SunnysideIsland.Events;
 using SunnysideIsland.GameData;
@@ -59,6 +60,7 @@ namespace SunnysideIsland.Weather
         
         [Header("=== Time Phase References ===")]
         [Tooltip("TimeManager 참조")]
+        [Inject(Optional = true)]
         [SerializeField] private TimeManager _timeManager;
         
         // ?�재 ?�간?�
@@ -89,6 +91,7 @@ namespace SunnysideIsland.Weather
         
         private void Awake()
         {
+            DIContainer.Inject(this);
             FindGlobalLight();
             InitializeWeather();
             InitializeRainPool();
@@ -104,7 +107,7 @@ namespace SunnysideIsland.Weather
             // TimeManager 찾기
             if (_timeManager == null)
             {
-                _timeManager = FindObjectOfType<TimeManager>();
+                DIContainer.TryResolve(out _timeManager);
             }
             
             // ?�재 ?�간?� ?�인
@@ -173,7 +176,7 @@ namespace SunnysideIsland.Weather
             if (_globalLight == null)
             {
                 // ?�에??Light2D 찾기 (Global ?�??
-                var lights = FindObjectsOfType<Light2D>();
+                var lights = FindObjectsByType<Light2D>(FindObjectsSortMode.None);
                 foreach (var light in lights)
                 {
                     if (light.lightType == Light2D.LightType.Global)
@@ -204,7 +207,7 @@ namespace SunnysideIsland.Weather
         {
             if (_timeManager == null)
             {
-                _timeManager = FindObjectOfType<TimeManager>();
+                DIContainer.TryResolve(out _timeManager);
             }
 
             if (_timeManager == null)
@@ -287,6 +290,7 @@ namespace SunnysideIsland.Weather
             float random = UnityEngine.Random.value;
             float sunnyThreshold = _cloudyToSunnyChance;
             float cloudyThreshold = sunnyThreshold + _cloudyToCloudyChance;
+            float rainyThreshold = cloudyThreshold + _cloudyToRainyChance;
             
             if (random < sunnyThreshold)
             {
@@ -295,6 +299,10 @@ namespace SunnysideIsland.Weather
             else if (random < cloudyThreshold)
             {
                 return WeatherType.Cloudy;
+            }
+            else if (random < rainyThreshold)
+            {
+                return WeatherType.Rainy;
             }
             else
             {

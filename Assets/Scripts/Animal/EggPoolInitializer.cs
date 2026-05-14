@@ -12,7 +12,7 @@ namespace SunnysideIsland.Animal
         [SerializeField] private int _initialSize = 10;
         [SerializeField] private int _maxSize = 50;
         
-        [Inject(Optional = true)] private IPoolManager _poolManager;
+        [Inject(Optional = true)] private IPoolManager _poolManager = default!;
         
         private void Start()
         {
@@ -22,7 +22,7 @@ namespace SunnysideIsland.Animal
         
         private void InitializeEggPool()
         {
-            // 프리팹이 할당되지 않았으면 Resources에서 찾기
+            // ?�리?�이 ?�당?��? ?�았?�면 Resources?�서 찾기
             if (_eggPrefab == null)
             {
                 _eggPrefab = Resources.Load<GameObject>("Prefabs/Egg");
@@ -43,11 +43,11 @@ namespace SunnysideIsland.Animal
 
             if (_poolManager != null)
             {
-                // 풀이 이미 존재하는지 확인
+                // ?�???��? 존재?�는지 ?�인
                 var existingPool = _poolManager.GetPool(_poolName);
                 if (existingPool == null)
                 {
-                    // 새 풀 생성
+                    // ???� ?�성
                     _poolManager.CreatePool(_poolName, _eggPrefab, _initialSize, _maxSize);
                 }
             }

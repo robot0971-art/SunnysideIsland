@@ -36,12 +36,15 @@ namespace SunnysideIsland.UI.Inventory
         [SerializeField] private Button _closeButton;
         [SerializeField] private Button _sortButton;
 
+        [Inject(Optional = true)]
         [SerializeField] private InventorySystem _inventory;
+        [Inject(Optional = true)]
         [SerializeField] private GameDataClass _gameData;
+        [Inject(Optional = true)]
         [SerializeField] private ItemSpriteManager _spriteManager;
 
         [Inject(Optional = true)]
-        private IItemConsumptionService _itemConsumptionService;
+        private IItemConsumptionService _itemConsumptionService = default!;
 
         private readonly List<SlotUI> _slots = new List<SlotUI>();
         private int _selectedSlotIndex = -1;
@@ -52,10 +55,15 @@ namespace SunnysideIsland.UI.Inventory
         {
             base.Awake();
 
+            DIContainer.Inject(this);
             if (_inventory == null)
-                _inventory = FindObjectOfType<InventorySystem>();
+                DIContainer.TryResolve(out _inventory);
+            if (_gameData == null)
+                DIContainer.TryResolve(out _gameData);
             if (_gameData == null)
                 _gameData = Resources.Load<GameDataClass>("GameData/GameData");
+            if (_spriteManager == null)
+                DIContainer.TryResolve(out _spriteManager);
             if (_itemConsumptionService == null)
                 DIContainer.TryResolve(out _itemConsumptionService);
             if (_inventoryGrid == null)

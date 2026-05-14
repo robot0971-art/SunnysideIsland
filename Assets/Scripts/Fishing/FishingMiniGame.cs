@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using SunnysideIsland.Input;
 using SunnysideIsland.Events;
 using System.Collections;
 
@@ -168,12 +169,12 @@ namespace SunnysideIsland.Fishing
 
         private void HandleInput()
         {
-            if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
+            if (GameInput.GetKeyDown(KeyCode.Space) || GameInput.GetMouseButtonDown(0))
             {
                 MoveCatchZone();
             }
 
-            float vertical = Input.GetAxisRaw("Vertical");
+            float vertical = GameInput.GetAxisRaw("Vertical");
             if (Mathf.Abs(vertical) > 0.1f)
             {
                 _catchZoneCenter += vertical * Time.deltaTime * 0.5f;

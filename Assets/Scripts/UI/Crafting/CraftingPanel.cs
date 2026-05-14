@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -13,8 +13,11 @@ namespace SunnysideIsland.UI.Crafting
     public class CraftingPanel : UIPanel
     {
         [Header("=== Crafting System ===")]
+        [Inject(Optional = true)]
         [SerializeField] private CraftingSystem _craftingSystem;
+        [Inject(Optional = true)]
         [SerializeField] private InventorySystem _inventorySystem;
+        [Inject(Optional = true)]
         [SerializeField] private SunnysideIsland.GameData.GameData _gameData;
 
         [Header("=== Recipe List ===")]
@@ -37,29 +40,31 @@ namespace SunnysideIsland.UI.Crafting
         [Header("=== Navigation ===")]
         [SerializeField] private Button _closeButton;
 
-        private CraftingRecipe _selectedRecipe;
+        private CraftingRecipe _selectedRecipe = default!;
         private List<GameObject> _recipeItems = new List<GameObject>();
         private List<GameObject> _ingredientItems = new List<GameObject>();
 
         protected override void Awake()
         {
             base.Awake();
+
+            DIContainer.Inject(this);
             
             if (_craftingSystem == null)
-                _craftingSystem = DIContainer.Resolve<CraftingSystem>();
+                DIContainer.TryResolve(out _craftingSystem);
             if (_inventorySystem == null)
-                _inventorySystem = DIContainer.Resolve<InventorySystem>();
+                DIContainer.TryResolve(out _inventorySystem);
             if (_gameData == null)
-                _gameData = FindObjectOfType<SunnysideIsland.GameData.GameData>();
+                DIContainer.TryResolve(out _gameData);
             
-            // UI 참조가 없으면 동적 UI 생성
+            // UI 李몄“媛 ?놁쑝硫??숈쟻 UI ?앹꽦
             if (_recipeListContent == null || _recipeItemPrefab == null || 
                 _recipeNameText == null || _craftButton == null || _closeButton == null)
             {
                 CreateDynamicUI();
             }
             
-            // UIManager에 등록
+            // UIManager???깅줉
             UIManager.Instance?.RegisterPanel(this);
         }
 
@@ -223,7 +228,7 @@ namespace SunnysideIsland.UI.Crafting
             _craftButton.interactable = canCraft;
             
             if (_craftButtonText != null)
-                _craftButtonText.text = canCraft ? "제작하기" : "재료 부족";
+                _craftButtonText.text = canCraft ? "Craft" : "Not enough materials";
         }
 
         private void ClearRecipeDetail()
@@ -251,23 +256,23 @@ namespace SunnysideIsland.UI.Crafting
             
             if (success)
             {
-                Debug.Log($"[CraftingPanel] 제작 성공: {_selectedRecipe.ResultItemId}");
-                // 제작 성공 시 UI 업데이트는 ItemCraftedEvent에서 처리
+                Debug.Log($"[CraftingPanel] ?쒖옉 ?깃났: {_selectedRecipe.ResultItemId}");
+                // ?쒖옉 ?깃났 ??UI ?낅뜲?댄듃??ItemCraftedEvent?먯꽌 泥섎━
             }
             else
             {
-                Debug.LogWarning($"[CraftingPanel] 제작 실패: {_selectedRecipe.RecipeId}");
+                Debug.LogWarning($"[CraftingPanel] ?쒖옉 ?ㅽ뙣: {_selectedRecipe.RecipeId}");
             }
         }
 
         private void OnItemCrafted(ItemCraftedEvent evt)
         {
-            Debug.Log($"[CraftingPanel] 제작 완료 이벤트 수신: {evt.ResultItemId}");
+            Debug.Log($"[CraftingPanel] ?쒖옉 ?꾨즺 ?대깽???섏떊: {evt.ResultItemId}");
             
-            // 레시피 목록 새로고침 (제작 가능 여부 변경)
+            // ?덉떆??紐⑸줉 ?덈줈怨좎묠 (?쒖옉 媛???щ? 蹂寃?
             RefreshRecipeList();
             
-            // 현재 선택된 레시피 업데이트
+            // ?꾩옱 ?좏깮???덉떆???낅뜲?댄듃
             if (_selectedRecipe != null && _selectedRecipe.RecipeId == evt.RecipeId)
             {
                 UpdateRecipeDetail();
@@ -276,7 +281,7 @@ namespace SunnysideIsland.UI.Crafting
 
         private void OnItemChanged(ItemPickedUpEvent evt)
         {
-            // 아이템 획득/이동 시 재료 목록 업데이트
+            // ?꾩씠???띾뱷/?대룞 ???щ즺 紐⑸줉 ?낅뜲?댄듃
             if (_selectedRecipe != null)
             {
                 UpdateIngredientsList();
@@ -325,8 +330,8 @@ namespace SunnysideIsland.UI.Crafting
         
         private void CreateDynamicUI()
         {
-            // 캔버스 확인 (없으면 생성)
-            Canvas canvas = FindObjectOfType<Canvas>();
+            // 罹붾쾭???뺤씤 (?놁쑝硫??앹꽦)
+            Canvas canvas = FindFirstObjectByType<Canvas>();
             if (canvas == null)
             {
                 GameObject canvasGO = new GameObject("CraftingCanvas");
@@ -337,7 +342,7 @@ namespace SunnysideIsland.UI.Crafting
                 canvasGO.AddComponent<GraphicRaycaster>();
             }
             
-            // 메인 패널
+            // 硫붿씤 ?⑤꼸
             GameObject panelGO = new GameObject("CraftingPanel");
             panelGO.transform.SetParent(canvas.transform, false);
             Image panelImage = panelGO.AddComponent<Image>();
@@ -347,7 +352,7 @@ namespace SunnysideIsland.UI.Crafting
             panelRect.anchorMax = new Vector2(0.8f, 0.8f);
             panelRect.sizeDelta = Vector2.zero;
             
-            // 스크롤뷰 (레시피 목록)
+            // ?ㅽ겕濡ㅻ럭 (?덉떆??紐⑸줉)
             GameObject scrollGO = new GameObject("RecipeScroll");
             scrollGO.transform.SetParent(panelGO.transform, false);
             ScrollRect scrollRect = scrollGO.AddComponent<ScrollRect>();
@@ -358,7 +363,7 @@ namespace SunnysideIsland.UI.Crafting
             scrollRectTransform.anchorMax = new Vector2(0.4f, 1);
             scrollRectTransform.sizeDelta = Vector2.zero;
             
-            // 콘텐츠
+            // 肄섑뀗痢?
             GameObject contentGO = new GameObject("Content");
             contentGO.transform.SetParent(scrollGO.transform, false);
             RectTransform contentRect = contentGO.AddComponent<RectTransform>();
@@ -374,7 +379,7 @@ namespace SunnysideIsland.UI.Crafting
             
             _recipeListContent = contentRect;
             
-            // 레시피 아이템 프리팹 생성 (간단한 버튼)
+            // ?덉떆???꾩씠???꾨━???앹꽦 (媛꾨떒??踰꾪듉)
             GameObject recipeItemPrefab = new GameObject("RecipeItemPrefab");
             Button button = recipeItemPrefab.AddComponent<Button>();
             Image image = recipeItemPrefab.AddComponent<Image>();
@@ -382,13 +387,13 @@ namespace SunnysideIsland.UI.Crafting
             TextMeshProUGUI text = CreateText(recipeItemPrefab.transform, "RecipeName", 20);
             RectTransform itemRect = recipeItemPrefab.GetComponent<RectTransform>();
             itemRect.sizeDelta = new Vector2(0, 40);
-            // RecipeItemUI 컴포넌트 추가 (기본 구현)
+            // RecipeItemUI 而댄룷?뚰듃 異붽? (湲곕낯 援ы쁽)
             RecipeItemUI recipeItemUI = recipeItemPrefab.AddComponent<RecipeItemUI>();
-            recipeItemUI.Setup("", "기본 레시피", null, false);
+            recipeItemUI.Setup("", "Default Recipe", null, false);
             
             _recipeItemPrefab = recipeItemPrefab;
             
-            // 레시피 상세 패널
+            // ?덉떆???곸꽭 ?⑤꼸
             GameObject detailPanel = new GameObject("RecipeDetail");
             detailPanel.transform.SetParent(panelGO.transform, false);
             RectTransform detailRect = detailPanel.AddComponent<RectTransform>();
@@ -400,7 +405,7 @@ namespace SunnysideIsland.UI.Crafting
             _recipeDescriptionText = CreateText(detailPanel.transform, "RecipeDescription", 18);
             _resultAmountText = CreateText(detailPanel.transform, "ResultAmount", 20);
             
-            // 결과 아이템 이미지
+            // 寃곌낵 ?꾩씠???대?吏
             GameObject imageGO = new GameObject("ResultImage");
             imageGO.transform.SetParent(detailPanel.transform, false);
             _resultItemImage = imageGO.AddComponent<Image>();
@@ -409,7 +414,7 @@ namespace SunnysideIsland.UI.Crafting
             imageRect.anchorMax = new Vector2(0.3f, 0.9f);
             imageRect.sizeDelta = Vector2.zero;
             
-            // 재료 목록 콘텐츠
+            // ?щ즺 紐⑸줉 肄섑뀗痢?
             GameObject ingredientsGO = new GameObject("IngredientsContent");
             ingredientsGO.transform.SetParent(detailPanel.transform, false);
             RectTransform ingredientsRect = ingredientsGO.AddComponent<RectTransform>();
@@ -424,7 +429,7 @@ namespace SunnysideIsland.UI.Crafting
             
             _ingredientsListContent = ingredientsRect;
             
-            // 재료 아이템 프리팹 생성
+            // ?щ즺 ?꾩씠???꾨━???앹꽦
             GameObject ingredientItemPrefab = new GameObject("IngredientItemPrefab");
             TextMeshProUGUI ingredientText = CreateText(ingredientItemPrefab.transform, "IngredientText", 18);
             IngredientItemUI ingredientUI = ingredientItemPrefab.AddComponent<IngredientItemUI>();
@@ -433,7 +438,7 @@ namespace SunnysideIsland.UI.Crafting
             
             _ingredientItemPrefab = ingredientItemPrefab;
             
-            // 제작 버튼
+            // ?쒖옉 踰꾪듉
             GameObject craftButtonGO = new GameObject("CraftButton");
             craftButtonGO.transform.SetParent(panelGO.transform, false);
             _craftButton = craftButtonGO.AddComponent<Button>();
@@ -444,9 +449,9 @@ namespace SunnysideIsland.UI.Crafting
             craftButtonRect.anchorMax = new Vector2(0.4f, 0.2f);
             craftButtonRect.sizeDelta = Vector2.zero;
             _craftButtonText = CreateText(craftButtonGO.transform, "ButtonText", 22);
-            _craftButtonText.text = "제작하기";
+            _craftButtonText.text = "?쒖옉?섍린";
             
-            // 닫기 버튼
+            // ?リ린 踰꾪듉
             GameObject closeButtonGO = new GameObject("CloseButton");
             closeButtonGO.transform.SetParent(panelGO.transform, false);
             _closeButton = closeButtonGO.AddComponent<Button>();
@@ -459,7 +464,7 @@ namespace SunnysideIsland.UI.Crafting
             TextMeshProUGUI closeText = CreateText(closeButtonGO.transform, "X", 20);
             closeText.text = "X";
             
-            // 프리팹 비활성화 (Instantiate 시 사용)
+            // ?꾨━??鍮꾪솢?깊솕 (Instantiate ???ъ슜)
             recipeItemPrefab.SetActive(false);
             ingredientItemPrefab.SetActive(false);
         }

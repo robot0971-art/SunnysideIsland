@@ -104,7 +104,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5455f6581178eec4280878a00a020cb7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SunnysideIsland.Environment.Tree
+  m_EditorClassIdentifier: Assembly-CSharp::SunnysideIsland.Environment.HarvestableTree
   _maxHits: 5
   _woodPrefab: {fileID: 8658729130372682168, guid: 78252f912af31ac488fc04e3bad1989e, type: 3}
   _woodAmount: 1

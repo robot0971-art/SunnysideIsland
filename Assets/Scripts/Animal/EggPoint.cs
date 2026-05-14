@@ -19,12 +19,12 @@ namespace SunnysideIsland.Animal
         public bool HasEgg { get; private set; } = false;
         public GameObject CurrentEgg { get; private set; } = null;
         
-        [Inject(Optional = true)] private IPoolManager _poolManager;
+        [Inject(Optional = true)] private IPoolManager _poolManager = default!;
         private ObjectPool _eggPool;
         
         private void Start()
         {
-            // 풀 참조 가져오기
+            // ?� 참조 가?�오�?
             DIContainer.Inject(this);
 
             if (_poolManager == null)
@@ -37,7 +37,7 @@ namespace SunnysideIsland.Animal
                 _eggPool = _poolManager.GetPool(_poolName);
             }
             
-            // 풀도 없고 프리팹도 없으면 Resources에서 찾기
+            // ?�???�고 ?�리?�도 ?�으�?Resources?�서 찾기
             if (_eggPool == null && _eggPrefab == null)
             {
                 _eggPrefab = Resources.Load<GameObject>("Prefabs/Egg");
@@ -54,7 +54,7 @@ namespace SunnysideIsland.Animal
             Gizmos.color = HasEgg ? Color.yellow : Color.gray;
             Gizmos.DrawWireSphere(transform.position, _gizmoRadius);
             
-            // 레이블 표시
+            // ?�이�??�시
             #if UNITY_EDITOR
             UnityEditor.Handles.Label(transform.position + Vector3.up * 0.5f, 
                 HasEgg ? "Has Egg" : "Empty");
@@ -78,7 +78,7 @@ namespace SunnysideIsland.Animal
         
         private void SpawnEgg()
         {
-            // 풀에서 Egg 가져오기
+            // ?�?�서 Egg 가?�오�?
             if (_eggPool != null)
             {
                 Debug.Log($"[EggPoint] {name} SpawnEgg from pool");
@@ -89,7 +89,7 @@ namespace SunnysideIsland.Animal
                     CurrentEgg.transform.rotation = Quaternion.identity;
                     CurrentEgg.transform.SetParent(transform);
                     
-                    // EggItem에 EggPoint 참조 설정
+                    // EggItem??EggPoint 참조 ?�정
                     var eggItem = CurrentEgg.GetComponent<EggItem>();
                     if (eggItem != null)
                     {
@@ -106,7 +106,7 @@ namespace SunnysideIsland.Animal
             }
             else if (_eggPrefab != null)
             {
-                // 풀이 없으면 Instantiate (fallback)
+                // ?�???�으�?Instantiate (fallback)
                 Debug.Log($"[EggPoint] {name} SpawnEgg from prefab");
                 CurrentEgg = Instantiate(_eggPrefab, transform.position, Quaternion.identity, transform);
                 var eggItem = CurrentEgg.GetComponent<EggItem>();
@@ -127,7 +127,7 @@ namespace SunnysideIsland.Animal
         {
             if (CurrentEgg != null)
             {
-                // 풀에 반환
+                // ?�??반환
                 var eggItem = CurrentEgg.GetComponent<EggItem>();
                 if (eggItem != null)
                 {

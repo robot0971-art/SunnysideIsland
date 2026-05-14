@@ -28,10 +28,10 @@ namespace SunnysideIsland.Player
         [SerializeField] private Vector3 _effectOffset = new Vector3(0, 1.2f, 0);
         [SerializeField] private float _effectDisplayTime = 1.2f;
 
-        [Inject] private GameDataAsset _gameData;
-        [Inject(Optional = true)] private IInventorySystem _inventorySystem;
-        [Inject(Optional = true)] private TimeManager _timeManager;
-        [Inject(Optional = true)] private IPoolManager _poolManager;
+        [Inject] private GameDataAsset _gameData = default!;
+        [Inject(Optional = true)] private IInventorySystem _inventorySystem = default!;
+        [Inject(Optional = true)] private TimeManager _timeManager = default!;
+        [Inject(Optional = true)] private IPoolManager _poolManager = default!;
 
         private PlayerController _player;
         private float _timer;
@@ -57,7 +57,7 @@ namespace SunnysideIsland.Player
         {
             if (_player == null || _gameData == null || _inventorySystem == null) return;
 
-            // 수영 중일 때만 작동
+            // ?�영 중일 ?�만 ?�동
             if (!_player.IsSwimming)
             {
                 _timer = _checkInterval;
@@ -94,17 +94,17 @@ namespace SunnysideIsland.Player
             var selection = SelectEntry(candidates);
             if (selection == null) return;
 
-            // [발견 시 연출 실행]
+            // [발견 ???�출 ?�행]
             PerformDiscoveryEffect();
 
-            // [아이템 즉시 획득]
+            // [?�이??즉시 ?�득]
             int quantity = selection.GetRandomQuantity();
             bool added = _inventorySystem.AddItem(selection.itemId, quantity);
 
             string itemName = _gameData.GetItem(selection.itemId)?.itemName ?? selection.itemId;
             var message = added
-                ? $"바다에서 {itemName}을(를) 발견했습니다!"
-                : $"인벤토리가 가득 찼습니다. {itemName}을(를) 버렸습니다.";
+                ? $"바다?�서 {itemName}??�? 발견?�습?�다!"
+                : $"?�벤?�리가 가??찼습?�다. {itemName}??�? 버렸?�니??";
 
             ToastMessage.Instance?.ShowMessage(message);
 
@@ -119,13 +119,13 @@ namespace SunnysideIsland.Player
 
         private void PerformDiscoveryEffect()
         {
-            // 1. 플레이어 멈춤
+            // 1. ?�레?�어 멈춤
             if (_player != null)
             {
                 _player.PauseMovement(_pauseDuration);
             }
 
-            // 2. 마크(Dust) 스폰
+            // 2. 마크(Dust) ?�폰
             if (_poolManager != null)
             {
                 GameObject effect = _poolManager.Spawn(_effectPoolName, transform.position + _effectOffset, Quaternion.identity);

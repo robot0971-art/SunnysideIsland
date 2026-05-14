@@ -16,7 +16,7 @@ namespace SunnysideIsland.Building
         [SerializeField] private List<Building> _buildings = new List<Building>();
         [SerializeField] private Transform _buildingParent;
 
-        [Inject] private BuildingDatabase _buildingDatabase;
+        [Inject] private BuildingDatabase _buildingDatabase = default!;
 
         public string SaveKey => "BuildingManager";
         

@@ -1,4 +1,4 @@
-using SunnysideIsland.Events;
+﻿using SunnysideIsland.Events;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -58,14 +58,14 @@ namespace SunnysideIsland.Building
         {
             if (_building == null) return;
 
-            // 건물에 설정된 오프셋 적용
+            // 嫄대Ъ???ㅼ젙???ㅽ봽???곸슜
             transform.localPosition = _building.ProgressBarOffset;
 
-            // 부모의 월드 스케일을 역으로 계산하여 일정한 크기 유지 + 건물에 설정된 배율 적용
+            // 遺紐⑥쓽 ?붾뱶 ?ㅼ??쇱쓣 ??쑝濡?怨꾩궛?섏뿬 ?쇱젙???ш린 ?좎? + 嫄대Ъ???ㅼ젙??諛곗쑉 ?곸슜
             if (transform.parent != null)
             {
                 Vector3 parentScale = transform.parent.lossyScale;
-                float customScale = _building.ProgressBarScale;
+                float customScale = _building.ProgressBarScale * _progressBarScale;
 
                 if (parentScale.x != 0 && parentScale.y != 0 && parentScale.z != 0)
                 {

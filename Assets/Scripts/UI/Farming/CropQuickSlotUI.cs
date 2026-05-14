@@ -12,7 +12,7 @@ namespace SunnysideIsland.UI.Farming
     [ExecuteAlways]
     public class CropQuickSlotUI : MonoBehaviour
     {
-        [Inject] private ICropSelectionSystem _selectionSystem;
+        [Inject] private ICropSelectionSystem _selectionSystem = default!;
 
         [Serializable]
         public class SlotStyle
@@ -152,11 +152,11 @@ namespace SunnysideIsland.UI.Farming
             CropData data = (Application.isPlaying && _selectionSystem != null) ? _selectionSystem.GetCropData(index) : null;
             int count = (Application.isPlaying && _selectionSystem != null) ? _selectionSystem.GetCount(index) : 0;
 
-            // 1. 배경색
+            // 1. 배경??
             if (_slotBackgrounds != null && _slotBackgrounds.Length > index && _slotBackgrounds[index] != null)
                 _slotBackgrounds[index].color = isSelected ? style.selectedColor : style.normalColor;
 
-            // 2. 텍스트
+            // 2. ?�스??
             if (_slotNumbers != null && _slotNumbers.Length > index && _slotNumbers[index] != null)
                 _slotNumbers[index].color = style.textColor;
 
@@ -177,7 +177,7 @@ namespace SunnysideIsland.UI.Farming
                 }
             }
 
-            // 3. 아이콘
+            // 3. ?�이�?
             if (_cropIcons != null && _cropIcons.Length > index && _cropIcons[index] != null)
             {
                 _cropIcons[index].color = style.iconColor;

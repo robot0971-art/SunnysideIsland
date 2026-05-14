@@ -11,8 +11,8 @@ namespace SunnysideIsland.Audio
 {
     public interface IAudioManager
     {
-        void PlayBGM(string soundId, float fadeDuration = 1f);
-        void StopBGM(float fadeDuration = 1f);
+        void PlayBGM(string soundId, float fadeDuration = -1f);
+        void StopBGM(float fadeDuration = -1f);
         void PlaySFX(string soundId, Vector3? position = null);
         void StopSFX(string soundId);
         void SetMasterVolume(float volume);
@@ -239,7 +239,7 @@ namespace SunnysideIsland.Audio
             }
         }
 
-        public void PlayBGM(string soundId, float fadeDuration = 1f)
+        public void PlayBGM(string soundId, float fadeDuration = -1f)
         {
             if (_soundDatabase == null)
             {
@@ -259,7 +259,8 @@ namespace SunnysideIsland.Audio
                 StopCoroutine(_crossfadeCoroutine);
             }
 
-            _crossfadeCoroutine = StartCoroutine(CrossfadeBGM(soundData, fadeDuration));
+            float duration = fadeDuration >= 0f ? fadeDuration : _defaultCrossfadeDuration;
+            _crossfadeCoroutine = StartCoroutine(CrossfadeBGM(soundData, duration));
 
             EventBus.Publish(new BGMChangedEvent
             {
@@ -306,14 +307,15 @@ namespace SunnysideIsland.Audio
             _crossfadeCoroutine = null;
         }
 
-        public void StopBGM(float fadeDuration = 1f)
+        public void StopBGM(float fadeDuration = -1f)
         {
             if (_crossfadeCoroutine != null)
             {
                 StopCoroutine(_crossfadeCoroutine);
             }
 
-            _crossfadeCoroutine = StartCoroutine(FadeOutBGM(fadeDuration));
+            float duration = fadeDuration >= 0f ? fadeDuration : _defaultCrossfadeDuration;
+            _crossfadeCoroutine = StartCoroutine(FadeOutBGM(duration));
 
             EventBus.Publish(new BGMChangedEvent
             {

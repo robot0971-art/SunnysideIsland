@@ -56,9 +56,9 @@ namespace SunnysideIsland.Animal
         [SerializeField] private float _effectDisplayTime = 1.2f;
 
         [Inject(Optional = true)]
-        private IInventorySystem _inventorySystem;
+        private IInventorySystem _inventorySystem = default!;
         [Inject(Optional = true)]
-        private IPoolManager _poolManager;
+        private IPoolManager _poolManager = default!;
         private AnimalBaseAI _animalBaseAI;
         private PlayerController _playerController;
         private float _nextMilkTime;

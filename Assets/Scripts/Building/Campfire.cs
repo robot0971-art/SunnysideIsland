@@ -67,8 +67,8 @@ namespace SunnysideIsland.Building
         private float _baseIntensity;
         private bool _isRegistered = false;
 
-        [DI.Inject] private SunnysideIsland.Inventory.IInventorySystem _inventory;
-        [DI.Inject] private IPoolManager _poolManager;
+        [DI.Inject] private SunnysideIsland.Inventory.IInventorySystem _inventory = default!;
+        [DI.Inject] private IPoolManager _poolManager = default!;
         
         private void Awake()
         {

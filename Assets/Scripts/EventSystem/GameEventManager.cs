@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using DI;
@@ -59,8 +59,8 @@ namespace SunnysideIsland.EventSystem
         [SerializeField] private Transform _merchantSpawnPoint;
         [SerializeField] private GameObject _ghostPrefab;
 
-        [Inject] private TimeManager _timeManager;
-        [Inject] private Weather.WeatherSystem _weatherSystem;
+        [Inject] private TimeManager _timeManager = default!;
+        [Inject] private Weather.WeatherSystem _weatherSystem = default!;
 
         private Events.RandomEventType? _activeRandomEvent;
         private int _activeEventDuration;
@@ -131,16 +131,16 @@ namespace SunnysideIsland.EventSystem
             switch (eventType)
             {
                 case WeeklyEventType.GatheringDay:
-                    Debug.Log("[GameEventManager] 채집의 날 - 채집 XP 2배");
+                    Debug.Log("[GameEventManager] Gathering Day - gathering XP x2");
                     break;
                 case WeeklyEventType.FishingContest:
-                    Debug.Log("[GameEventManager] 낚시 대회 - 특별 물고기 출현");
+                    Debug.Log("[GameEventManager] ?싳떆 ???- ?밸퀎 臾쇨퀬湲?異쒗쁽");
                     break;
                 case WeeklyEventType.MarketDay:
-                    Debug.Log("[GameEventManager] 시장의 날 - 모든 가격 할인 20%");
+                    Debug.Log("[GameEventManager] ?쒖옣????- 紐⑤뱺 媛寃??좎씤 20%");
                     break;
                 case WeeklyEventType.RestDay:
-                    Debug.Log("[GameEventManager] 쉬는 날 - 모든 NPC 휴식");
+                    Debug.Log("[GameEventManager] ?щ뒗 ??- 紐⑤뱺 NPC ?댁떇");
                     break;
             }
         }
@@ -185,16 +185,16 @@ namespace SunnysideIsland.EventSystem
             switch (eventType)
             {
                 case Events.SeasonalEventType.ArborDay:
-                    Debug.Log("[GameEventManager] 식목일 - 나무 무료 제공");
+                    Debug.Log("[GameEventManager] ?앸ぉ??- ?섎Т 臾대즺 ?쒓났");
                     break;
                 case Events.SeasonalEventType.BeachFestival:
-                    Debug.Log("[GameEventManager] 해변 축제 - 관광객 2배");
+                    Debug.Log("[GameEventManager] Beach Festival - visitors x2");
                     break;
                 case Events.SeasonalEventType.HarvestFestival:
-                    Debug.Log("[GameEventManager] 추수제 - 농작물 수확량 2배");
+                    Debug.Log("[GameEventManager] Harvest Festival - crop harvest x2");
                     break;
                 case Events.SeasonalEventType.SnowFestival:
-                    Debug.Log("[GameEventManager] 눈축제 - 겨울 한정 아이템");
+                    Debug.Log("[GameEventManager] Snow Festival - winter limited items");
                     break;
             }
         }
@@ -360,12 +360,12 @@ namespace SunnysideIsland.EventSystem
 
         private void ApplyBumperCropEffect()
         {
-            Debug.Log("[GameEventManager] 풍작 - 작물 성장 속도 2배");
+            Debug.Log("[GameEventManager] Bumper Crop - crop growth speed x2");
         }
 
         private void ApplyDroughtEffect()
         {
-            Debug.Log("[GameEventManager] 가뭄 - 물 주기 필요 증가");
+            Debug.Log("[GameEventManager] 媛萸?- 臾?二쇨린 ?꾩슂 利앷?");
         }
 
         public void EndActiveEvent()

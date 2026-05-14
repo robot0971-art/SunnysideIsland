@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using SunnysideIsland.Core;
 using SunnysideIsland.Player;
@@ -9,7 +9,6 @@ namespace SunnysideIsland.Tests
     {
         [Header("=== Test Settings ===")]
         [SerializeField] private bool _runTestsOnStart = false;
-        [SerializeField] private string _testSaveName = "test_save";
         
         private List<TestResult> _results = new List<TestResult>();
         
@@ -44,7 +43,7 @@ namespace SunnysideIsland.Tests
         
         private void TestSaveSystemExists()
         {
-            var saveSystem = FindObjectOfType<SaveSystem>();
+            var saveSystem = FindFirstObjectByType<SaveSystem>();
             if (saveSystem != null)
             {
                 Pass("SaveSystemExists", "SaveSystem found in scene");
@@ -57,7 +56,7 @@ namespace SunnysideIsland.Tests
         
         private void TestPlayerSaveLoad()
         {
-            var player = FindObjectOfType<PlayerController>();
+            var player = FindFirstObjectByType<PlayerController>();
             if (player == null)
             {
                 Skip("PlayerSaveLoad", "PlayerController not found");
@@ -85,7 +84,7 @@ namespace SunnysideIsland.Tests
         
         private void TestInventorySaveLoad()
         {
-            var inventory = FindObjectOfType<Inventory.InventorySystem>();
+            var inventory = FindFirstObjectByType<Inventory.InventorySystem>();
             if (inventory == null)
             {
                 Skip("InventorySaveLoad", "InventorySystem not found");
@@ -113,7 +112,7 @@ namespace SunnysideIsland.Tests
         
         private void TestTimeSaveLoad()
         {
-            var timeManager = FindObjectOfType<TimeManager>();
+            var timeManager = FindFirstObjectByType<TimeManager>();
             if (timeManager == null)
             {
                 Skip("TimeSaveLoad", "TimeManager not found");
@@ -141,7 +140,7 @@ namespace SunnysideIsland.Tests
         
         private void TestQuestSaveLoad()
         {
-            var questSystem = FindObjectOfType<Quest.QuestSystem>();
+            var questSystem = FindFirstObjectByType<Quest.QuestSystem>();
             if (questSystem == null)
             {
                 Skip("QuestSaveLoad", "QuestSystem not found");
@@ -169,7 +168,7 @@ namespace SunnysideIsland.Tests
         
         private void TestBuildingSaveLoad()
         {
-            var buildingManager = FindObjectOfType<Building.BuildingManager>();
+            var buildingManager = FindFirstObjectByType<Building.BuildingManager>();
             if (buildingManager == null)
             {
                 Skip("BuildingSaveLoad", "BuildingManager not found");

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -78,6 +78,7 @@ namespace SunnysideIsland.UI.Components
             if (notificationGO != null)
             {
                 _activeNotifications.Insert(0, notificationGO);
+                LayoutNotifications();
                 StartCoroutine(AnimateNotification(notificationGO, item.Duration));
             }
         }
@@ -191,6 +192,7 @@ namespace SunnysideIsland.UI.Components
             
             _activeNotifications.Remove(notification);
             Destroy(notification);
+            LayoutNotifications();
             
             if (_notificationQueue.Count > 0)
             {
@@ -198,6 +200,21 @@ namespace SunnysideIsland.UI.Components
             }
         }
         
+        private void LayoutNotifications()
+        {
+            for (int i = 0; i < _activeNotifications.Count; i++)
+            {
+                var rectTransform = _activeNotifications[i]?.GetComponent<RectTransform>();
+                if (rectTransform == null)
+                {
+                    continue;
+                }
+
+                float height = rectTransform.rect.height > 0f ? rectTransform.rect.height : 30f;
+                rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, -i * (height + _spacing));
+            }
+        }
+
         public void ClearAll()
         {
             StopAllCoroutines();

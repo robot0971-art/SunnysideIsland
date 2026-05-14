@@ -16,8 +16,8 @@ namespace SunnysideIsland.Items
         public string ItemId => _itemId;
         public int Quantity => _quantity;
 
-        [Inject] private IInventorySystem _inventory;
-        [Inject] private IPoolManager _poolManager;
+        [Inject] private IInventorySystem _inventory = default!;
+        [Inject] private IPoolManager _poolManager = default!;
 
         private void OnEnable()
         {

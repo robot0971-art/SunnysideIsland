@@ -3,6 +3,7 @@ using DI;
 using UnityEngine;
 using SunnysideIsland.Events;
 using SunnysideIsland.GameData;
+using SunnysideIsland.Input;
 using SunnysideIsland.UI;
 using GameDataClass = SunnysideIsland.GameData.GameData;
 
@@ -30,7 +31,7 @@ namespace SunnysideIsland.Farming
         [SerializeField] private CropData[] _cropDatas = new CropData[5];
         [SerializeField] private int[] _cropCounts = new int[5];
 
-        [Inject(Optional = true)] private GameDataClass _gameData;
+        [Inject(Optional = true)] private GameDataClass _gameData = default!;
 
         private int _selectedIndex = 0;
 
@@ -43,7 +44,7 @@ namespace SunnysideIsland.Farming
 
         private void Awake()
         {
-            // 인스펙터 데이터를 보호하기 위해 배열이 없을 때만 새로 생성
+            // ?�스?�터 ?�이?��? 보호?�기 ?�해 배열???�을 ?�만 ?�로 ?�성
             if (_cropDatas == null || _cropDatas.Length == 0)
             {
                 _cropDatas = new CropData[5];
@@ -78,7 +79,7 @@ namespace SunnysideIsland.Farming
 
             for (int i = 0; i < 5; i++)
             {
-                if (Input.GetKeyDown(KeyCode.Alpha1 + i))
+                if (GameInput.GetKeyDown(KeyCode.Alpha1 + i))
                 {
                     Select(i);
                 }
@@ -93,7 +94,7 @@ namespace SunnysideIsland.Farming
                 return;
             }
 
-            // 아이템이 없어도 선택은 가능하게 하되, 경고만 표시
+            // ?�이?�이 ?�어???�택?� 가?�하�??�되, 경고�??�시
             _selectedIndex = index;
             OnSelectedIndexChanged?.Invoke(_selectedIndex);
             OnSlotUpdated?.Invoke(index, _cropDatas[index], _cropCounts[index]);

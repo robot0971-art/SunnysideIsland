@@ -102,7 +102,14 @@ namespace SunnysideIsland.Animal
         private void FindAllEggPoints()
         {
             _allEggPoints.Clear();
-            _allEggPoints.AddRange(FindObjectsOfType<EggPoint>());
+            var eggPoints = FindObjectsByType<EggPoint>(FindObjectsSortMode.None);
+            foreach (var eggPoint in eggPoints)
+            {
+                if (Vector3.Distance(transform.position, eggPoint.transform.position) <= _eggPointSearchRadius)
+                {
+                    _allEggPoints.Add(eggPoint);
+                }
+            }
             _globalSearchTimer = Time.time + 2f;
         }
 

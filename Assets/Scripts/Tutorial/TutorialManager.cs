@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 using DI;
 using SunnysideIsland.Core;
 using SunnysideIsland.Events;
+using SunnysideIsland.Input;
 using SunnysideIsland.UI;
 using Newtonsoft.Json.Linq;
 
@@ -206,12 +207,12 @@ namespace SunnysideIsland.Tutorial
                         KeyCode keyCode;
                         if (Enum.TryParse(currentStep.actionTarget, out keyCode))
                         {
-                            if (Input.GetKeyDown(keyCode))
+                            if (GameInput.GetKeyDown(keyCode))
                             {
                                 CompleteCurrentStep();
                             }
                         }
-                        else if (Input.GetButtonDown(currentStep.actionTarget))
+                        else if (GameInput.GetButtonDown(currentStep.actionTarget))
                         {
                             CompleteCurrentStep();
                         }

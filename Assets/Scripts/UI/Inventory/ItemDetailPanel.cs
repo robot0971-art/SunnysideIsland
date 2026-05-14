@@ -29,7 +29,7 @@ namespace SunnysideIsland.UI.Inventory
         [SerializeField] private InventorySystem _inventorySystem;
 
         [Inject(Optional = true)]
-        private IItemConsumptionService _itemConsumptionService;
+        private IItemConsumptionService _itemConsumptionService = default!;
 
         private GameData.ItemData _currentItem;
 

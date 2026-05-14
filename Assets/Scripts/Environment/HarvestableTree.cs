@@ -10,7 +10,7 @@ using SunnysideIsland.Pool;
 
 namespace SunnysideIsland.Environment
 {
-    public class Tree : MonoBehaviour, ISaveable
+    public class HarvestableTree : MonoBehaviour, ISaveable
     {
         [Header("=== Settings ===")]
         [SerializeField] private int _maxHits = 5;
@@ -40,8 +40,8 @@ namespace SunnysideIsland.Environment
         private Coroutine _flashCoroutine;
         private Collider2D[] _colliders;
 
-        [Inject(Optional = true)] private IPoolManager _poolManager;
-        [Inject(Optional = true)] private TimeManager _timeManager;
+        [Inject(Optional = true)] private IPoolManager _poolManager = default!;
+        [Inject(Optional = true)] private TimeManager _timeManager = default!;
 
         public bool IsChopped => _isChopped;
 
@@ -82,21 +82,21 @@ namespace SunnysideIsland.Environment
             _currentHits++;
             PlayHitEffect();
 
-            Debug.Log($"[Tree] Hit {_currentHits}/{_maxHits}");
+            Debug.Log($"[HarvestableTree] Hit {_currentHits}/{_maxHits}");
 
             if (_currentHits >= _maxHits)
             {
                 _isFalling = true;
-                Debug.Log($"[Tree] Starting FallTree coroutine with delay {_fallDelay}s");
+                Debug.Log($"[HarvestableTree] Starting FallTree coroutine with delay {_fallDelay}s");
                 StartCoroutine(FallTreeDelayed());
             }
         }
 
         private IEnumerator FallTreeDelayed()
         {
-            Debug.Log("[Tree] FallTreeDelayed coroutine started");
+            Debug.Log("[HarvestableTree] FallTreeDelayed coroutine started");
             yield return new WaitForSeconds(_fallDelay);
-            Debug.Log("[Tree] FallTreeDelayed delay complete, calling FallTree");
+            Debug.Log("[HarvestableTree] FallTreeDelayed delay complete, calling FallTree");
             FallTree();
         }
 
@@ -132,7 +132,7 @@ namespace SunnysideIsland.Environment
 
         private void FallTree()
         {
-            Debug.Log($"[Tree] FallTree called, _poolManager={_poolManager != null}");
+            Debug.Log($"[HarvestableTree] FallTree called, _poolManager={_poolManager != null}");
 
             _isChopped = true;
             _respawnDay = CalculateRespawnDay();
@@ -140,12 +140,12 @@ namespace SunnysideIsland.Environment
             if (_poolManager != null)
             {
                 Vector3 dustPosition = transform.position + _dustOffset;
-                Debug.Log($"[Tree] Spawning Dust at {dustPosition} (offset: {_dustOffset})");
+                Debug.Log($"[HarvestableTree] Spawning Dust at {dustPosition} (offset: {_dustOffset})");
                 _poolManager.Spawn("Dust", dustPosition, Quaternion.identity);
             }
             else
             {
-                Debug.LogWarning("[Tree] _poolManager is null!");
+                Debug.LogWarning("[HarvestableTree] _poolManager is null!");
             }
 
             SetTreeVisible(false);
@@ -156,7 +156,7 @@ namespace SunnysideIsland.Environment
                 WoodAmount = _woodAmount
             });
 
-            Debug.Log($"[Tree] Tree chopped! Spawned {_woodAmount} wood. Respawn day: {_respawnDay}");
+            Debug.Log($"[HarvestableTree] Tree chopped! Spawned {_woodAmount} wood. Respawn day: {_respawnDay}");
         }
 
         private void Respawn()
@@ -168,7 +168,7 @@ namespace SunnysideIsland.Environment
             _currentHits = 0;
             _respawnDay = -1;
 
-            Debug.Log("[Tree] Tree respawned");
+            Debug.Log("[HarvestableTree] Tree respawned");
         }
 
         private void SetTreeVisible(bool isVisible)

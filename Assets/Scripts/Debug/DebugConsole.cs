@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using TMPro;
 using DI;
 using SunnysideIsland.Core;
+using SunnysideIsland.Input;
 using SunnysideIsland.Inventory;
 using SunnysideIsland.Player;
 using SunnysideIsland.Survival;
@@ -30,11 +31,11 @@ namespace SunnysideIsland.Cheats
         private int _historyIndex = -1;
         
         [Inject]
-        private GameManager _gameManager;
+        private GameManager _gameManager = default!;
         [Inject]
-        private InventorySystem _inventory;
+        private InventorySystem _inventory = default!;
         [Inject]
-        private TimeManager _timeManager;
+        private TimeManager _timeManager = default!;
         
         private bool _isVisible = false;
         
@@ -72,7 +73,7 @@ namespace SunnysideIsland.Cheats
                 return;
             }
 
-            if (Input.GetKeyDown(_toggleKey))
+            if (GameInput.GetKeyDown(_toggleKey))
             {
                 ToggleConsole();
             }
@@ -132,7 +133,7 @@ namespace SunnysideIsland.Cheats
         {
             if (_commandHistory.Count == 0) return;
             
-            if (Input.GetKeyDown(KeyCode.UpArrow))
+            if (GameInput.GetKeyDown(KeyCode.UpArrow))
             {
                 _historyIndex = Mathf.Min(_historyIndex + 1, _commandHistory.Count - 1);
                 if (_historyIndex >= 0 && _historyIndex < _commandHistory.Count)
@@ -140,7 +141,7 @@ namespace SunnysideIsland.Cheats
                     _inputField.text = _commandHistory[_commandHistory.Count - 1 - _historyIndex];
                 }
             }
-            else if (Input.GetKeyDown(KeyCode.DownArrow))
+            else if (GameInput.GetKeyDown(KeyCode.DownArrow))
             {
                 _historyIndex = Mathf.Max(_historyIndex - 1, -1);
                 if (_historyIndex >= 0)
@@ -334,7 +335,7 @@ namespace SunnysideIsland.Cheats
         
         private void CmdHeal(string[] args)
         {
-            var player = FindObjectOfType<PlayerController>();
+            var player = FindFirstObjectByType<PlayerController>();
             if (player == null)
             {
                 LogError("Player not found");
@@ -366,7 +367,7 @@ namespace SunnysideIsland.Cheats
                 return;
             }
             
-            var player = FindObjectOfType<PlayerController>();
+            var player = FindFirstObjectByType<PlayerController>();
             if (player != null)
             {
                 player.transform.position = new Vector3(x, y, 0);
@@ -423,7 +424,7 @@ namespace SunnysideIsland.Cheats
         
         private void CmdStats(string[] args)
         {
-            var player = FindObjectOfType<PlayerController>();
+            var player = FindFirstObjectByType<PlayerController>();
             if (player == null)
             {
                 LogError("Player not found");
