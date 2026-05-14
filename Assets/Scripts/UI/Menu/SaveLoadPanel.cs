@@ -81,7 +81,6 @@ namespace SunnysideIsland.UI.Menu
             base.OnOpened();
             ApplyCanvasSorting();
             RefreshDependencies();
-            Debug.Log($"[SaveLoadPanel] OnOpened called | Frame: {Time.frameCount}");
             RefreshList();
         }
 
@@ -105,14 +104,11 @@ namespace SunnysideIsland.UI.Menu
 
             try
             {
-                Debug.Log($"[SaveLoadPanel] RefreshList Called | Frame: {Time.frameCount} | Mode: {(_isSaveMode ? "Save" : "Load")}");
-
                 if (_slotContainer == null)
                 {
                     return;
                 }
 
-                int destroyedCount = 0;
                 List<GameObject> childrenToDestroy = new List<GameObject>();
                 foreach (Transform child in _slotContainer)
                 {
@@ -124,11 +120,8 @@ namespace SunnysideIsland.UI.Menu
                     if (child != null)
                     {
                         Destroy(child);
-                        destroyedCount++;
                     }
                 }
-
-                Debug.Log($"[SaveLoadPanel] Destroyed {destroyedCount} existing slots");
 
                 if (_saveSystem == null)
                 {
@@ -137,14 +130,11 @@ namespace SunnysideIsland.UI.Menu
 
                 var saves = _saveSystem.GetSaveList();
 
-                Debug.Log($"[SaveLoadPanel] Found {saves.Count} save files");
-
                 if (_titleText != null)
                 {
                     _titleText.text = _isSaveMode ? "Save Game" : "Load Game";
                 }
 
-                int createdCount = 0;
                 foreach (var metadata in saves)
                 {
                     if (_slotPrefab != null)
@@ -154,12 +144,9 @@ namespace SunnysideIsland.UI.Menu
                         if (slot != null)
                         {
                             slot.Setup(metadata, this);
-                            createdCount++;
                         }
                     }
                 }
-
-                Debug.Log($"[SaveLoadPanel] Created {createdCount} new slots");
             }
             finally
             {
@@ -173,7 +160,6 @@ namespace SunnysideIsland.UI.Menu
         public void OnSlotSelected(string saveName)
         {
             RefreshDependencies();
-            Debug.Log($"[SaveLoadPanel] Slot Selected: {saveName} | Mode: {(_isSaveMode ? "Save" : "Load")} | GM: {(_gameManager != null)}");
             if (_isSaveMode)
             {
                 _gameManager?.SaveGame(saveName);
@@ -181,7 +167,6 @@ namespace SunnysideIsland.UI.Menu
             }
             else
             {
-                Debug.Log($"[SaveLoadPanel] Calling GameManager.LoadGame({saveName})");
                 var activeSceneName = SceneManager.GetActiveScene().name;
                 var resolvedGameManager = _gameManager ?? GameManager.Instance;
                 if (string.Equals(activeSceneName, "Start Scene", StringComparison.OrdinalIgnoreCase))

@@ -82,21 +82,16 @@ namespace SunnysideIsland.Environment
             _currentHits++;
             PlayHitEffect();
 
-            Debug.Log($"[HarvestableTree] Hit {_currentHits}/{_maxHits}");
-
             if (_currentHits >= _maxHits)
             {
                 _isFalling = true;
-                Debug.Log($"[HarvestableTree] Starting FallTree coroutine with delay {_fallDelay}s");
                 StartCoroutine(FallTreeDelayed());
             }
         }
 
         private IEnumerator FallTreeDelayed()
         {
-            Debug.Log("[HarvestableTree] FallTreeDelayed coroutine started");
             yield return new WaitForSeconds(_fallDelay);
-            Debug.Log("[HarvestableTree] FallTreeDelayed delay complete, calling FallTree");
             FallTree();
         }
 
@@ -132,15 +127,12 @@ namespace SunnysideIsland.Environment
 
         private void FallTree()
         {
-            Debug.Log($"[HarvestableTree] FallTree called, _poolManager={_poolManager != null}");
-
             _isChopped = true;
             _respawnDay = CalculateRespawnDay();
 
             if (_poolManager != null)
             {
                 Vector3 dustPosition = transform.position + _dustOffset;
-                Debug.Log($"[HarvestableTree] Spawning Dust at {dustPosition} (offset: {_dustOffset})");
                 _poolManager.Spawn("Dust", dustPosition, Quaternion.identity);
             }
             else
@@ -155,8 +147,6 @@ namespace SunnysideIsland.Environment
                 TreePosition = transform.position,
                 WoodAmount = _woodAmount
             });
-
-            Debug.Log($"[HarvestableTree] Tree chopped! Spawned {_woodAmount} wood. Respawn day: {_respawnDay}");
         }
 
         private void Respawn()
@@ -167,8 +157,6 @@ namespace SunnysideIsland.Environment
             _isFalling = false;
             _currentHits = 0;
             _respawnDay = -1;
-
-            Debug.Log("[HarvestableTree] Tree respawned");
         }
 
         private void SetTreeVisible(bool isVisible)
@@ -190,7 +178,7 @@ namespace SunnysideIsland.Environment
         }
 
         [Serializable]
-        private class TreeSaveData
+        internal class TreeSaveData
         {
             public int currentHits;
             public bool isChopped;

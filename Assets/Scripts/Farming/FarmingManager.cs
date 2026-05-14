@@ -86,8 +86,7 @@ namespace SunnysideIsland.Farming
         {
             if (_inventorySystem != null && !string.IsNullOrEmpty(evt.CropId))
             {
-                bool added = _inventorySystem.AddItem(evt.CropId, evt.Amount);
-                Debug.Log($"[FarmingManager] Harvested {evt.CropId} x{evt.Amount} to inventory (result: {added})");
+                _inventorySystem.AddItem(evt.CropId, evt.Amount);
                 return;
             }
 
@@ -102,7 +101,6 @@ namespace SunnysideIsland.Farming
 
         private void OnDayStarted(DayStartedEvent evt)
         {
-            Debug.Log($"[FarmingManager] DayStartedEvent received. Day {evt.Day}, Plot count: {_plots.Count}");
             foreach (var plot in _plots)
             {
                 if (plot != null)

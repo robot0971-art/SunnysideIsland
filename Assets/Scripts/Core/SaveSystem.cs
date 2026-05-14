@@ -5,8 +5,10 @@ using System.Linq;
 using UnityEngine;
 using SunnysideIsland.Events;
 using SunnysideIsland.Building;
+using SunnysideIsland.Environment;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 
 namespace SunnysideIsland.Core
 {
@@ -52,8 +54,39 @@ namespace SunnysideIsland.Core
         {
             TypeNameHandling = TypeNameHandling.Auto,
             Formatting = Formatting.Indented,
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            SerializationBinder = new LegacySaveSerializationBinder()
         };
+
+        private sealed class LegacySaveSerializationBinder : ISerializationBinder
+        {
+            private static readonly Dictionary<string, Type> LegacyTypes = new()
+            {
+                { "SunnysideIsland.Environment.Tree+TreeSaveData", typeof(HarvestableTree.TreeSaveData) }
+            };
+
+            public Type BindToType(string assemblyName, string typeName)
+            {
+                if (LegacyTypes.TryGetValue(typeName, out var legacyType))
+                {
+                    return legacyType;
+                }
+
+                var qualifiedName = string.IsNullOrEmpty(assemblyName)
+                    ? typeName
+                    : $"{typeName}, {assemblyName}";
+
+                return Type.GetType(qualifiedName)
+                    ?? Type.GetType(typeName)
+                    ?? throw new JsonSerializationException($"Could not resolve save data type '{typeName}'.");
+            }
+
+            public void BindToName(Type serializedType, out string assemblyName, out string typeName)
+            {
+                assemblyName = serializedType.Assembly.GetName().Name;
+                typeName = serializedType.FullName;
+            }
+        }
 
         private void Awake()
         {
@@ -110,7 +143,6 @@ namespace SunnysideIsland.Core
             var campfireManager = FindFirstObjectByType<CampfireManager>();
             if (campfireManager == null)
             {
-                Debug.LogWarning("[SaveSystem] Legacy campfire data exists, but CampfireManager was not found.");
                 return;
             }
 
@@ -374,7 +406,7 @@ namespace SunnysideIsland.Core
                         }
                         else
                         {
-                            Debug.LogWarning($"[SaveSystem] No data found in file for key: {saveable.SaveKey}. Skipping.");
+                            continue;
                         }
                     }
                     catch (Exception e)

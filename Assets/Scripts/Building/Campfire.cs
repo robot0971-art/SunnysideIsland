@@ -273,9 +273,6 @@ namespace SunnysideIsland.Building
             // Pool에서 Fire 생성
             SpawnFireFromPool();
             
-            Debug.Log("[Campfire] 모닥불에 불을 붙였습니다!");
-            
-            Debug.Log($"[Campfire] Fire lit! Duration: {_burnDurationHours} hours");
         }
         
         /// <summary>
@@ -288,9 +285,6 @@ namespace SunnysideIsland.Building
             // Pool에서 Fire 반환
             ReturnFireToPool();
             
-            Debug.Log("[Campfire] 모닥불이 다 타서 꺼졌습니다. 다시 불을 붙일 수 있습니다.");
-            
-            Debug.Log("[Campfire] Burned out - Base remains, Fire returned to pool");
         }
         
         /// <summary>
@@ -309,8 +303,6 @@ namespace SunnysideIsland.Building
             
             if (_currentFireObject != null)
             {
-                Debug.Log($"[Campfire] Spawned object: {_currentFireObject.name}, Prefab: {(_currentFireObject.transform.parent?.name ?? "no parent")}");
-                
                 _currentFireObject.transform.SetParent(transform);
                 // 불꽃 스케일 적용
                 _currentFireObject.transform.localScale = _fireScale;
@@ -321,8 +313,6 @@ namespace SunnysideIsland.Building
                 {
                     particles.StartFire();
                 }
-                
-                Debug.Log("[Campfire] Fire spawned from pool and scale applied");
             }
         }
         
@@ -342,7 +332,6 @@ namespace SunnysideIsland.Building
                 
                 _poolManager.Despawn(_firePoolName, _currentFireObject);
                 _currentFireObject = null;
-                Debug.Log("[Campfire] Fire returned to pool");
             }
         }
         

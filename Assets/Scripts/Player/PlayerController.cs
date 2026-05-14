@@ -349,15 +349,12 @@ namespace SunnysideIsland.Player
 
             if (GameInput.GetKeyDown(KeyCode.I))
             {
-                Debug.Log($"[PlayerController] I key pressed. UIManager resolved: {UIManager != null}");
                 var uiMgr = UIManager;
                 if (uiMgr != null)
                 {
                     var inventoryPanel = uiMgr.GetPanel<SunnysideIsland.UI.Inventory.InventoryPanel>();
-                    Debug.Log($"[PlayerController] InventoryPanel is null: {inventoryPanel == null}");
                     if (inventoryPanel != null)
                     {
-                        Debug.Log($"[PlayerController] InventoryPanel.IsOpen: {inventoryPanel.IsOpen}");
                         if (inventoryPanel.IsOpen)
                             uiMgr.ClosePanel<SunnysideIsland.UI.Inventory.InventoryPanel>();
                         else

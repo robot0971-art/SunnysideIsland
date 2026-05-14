@@ -406,7 +406,6 @@ namespace SunnysideIsland.Core
             EventBus.Subscribe<ItemCraftedEvent>(OnItemCrafted);
             EventBus.Subscribe<PlayerDiedEvent>(OnPlayerDiedEvent);
             
-            Debug.Log("[GameManager] EventBus events resubscribed after scene load");
         }
 
         private void RefreshSceneReferences()
@@ -449,21 +448,13 @@ namespace SunnysideIsland.Core
                 yield break;
             }
 
-            Debug.Log("[GameManager] Opening QuestPanel after new game start");
             UIManager.Instance.CloseAllPanels();
             yield return WaitForQuestInitialization();
 
-            var questPanel = UIManager.Instance.GetPanel<QuestPanel>();
+            var questPanel = UIManager.Instance.GetPanel<QuestPanel>(false);
             if (questPanel != null)
             {
-                var questSystem = FindFirstObjectByType<QuestSystem>(FindObjectsInactive.Include);
-                int activeQuestCount = questSystem?.GetActiveQuests().Count ?? 0;
-                Debug.Log($"[GameManager] QuestPanel found: {questPanel.name}, IsOpen={questPanel.IsOpen}, ActiveQuests={activeQuestCount}, ActiveInHierarchy={questPanel.gameObject.activeInHierarchy}");
                 UIManager.Instance.OpenPanel(questPanel);
-            }
-            else
-            {
-                Debug.LogWarning("[GameManager] QuestPanel not found on game start.");
             }
         }
 

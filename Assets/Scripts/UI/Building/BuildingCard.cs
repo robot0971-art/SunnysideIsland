@@ -167,7 +167,6 @@ namespace SunnysideIsland.UI.Building
                     _iconSprite = data.IconSprite;
                 }
 
-                Debug.Log($"[BuildingCard] [{gameObject.name}] Setup: {data.BuildingName}, _iconSprite: {(_iconSprite != null ? "Yes" : "No")}");
                 
                 // 2. 스프라이트가 있다면 사용
                 if (_iconSprite != null)
@@ -294,7 +293,6 @@ namespace SunnysideIsland.UI.Building
                 rect.localScale = Vector3.one;
                 rect.offsetMin = rect.offsetMax = Vector2.zero;
                 
-                Debug.Log($"[BuildingCard] [{gameObject.name}] SetupIconInstance - Margin applied: {margin}, DataScale: {dataIconScale}");
             }
             else
             {
@@ -346,7 +344,6 @@ namespace SunnysideIsland.UI.Building
                     rect.localScale = Vector3.one;
                     rect.offsetMin = rect.offsetMax = Vector2.zero;
                     
-                    Debug.Log($"[BuildingCard] [{gameObject.name}] SetupSpriteIcon - Margin applied: {margin}, DataScale: {dataIconScale}");
                 }
                 else
                 {
@@ -360,7 +357,6 @@ namespace SunnysideIsland.UI.Building
                 img.enabled = true;
                 
                 _currentIconInstance = iconObj;
-                Debug.Log($"[BuildingCard] [{gameObject.name}] SetupSpriteIcon SUCCESS - Icon created.");
             }
             catch (System.Exception ex)
             {

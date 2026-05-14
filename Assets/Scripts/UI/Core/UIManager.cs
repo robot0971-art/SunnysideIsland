@@ -14,7 +14,7 @@ namespace SunnysideIsland.UI
 {
     public interface IUIManager
     {
-        T GetPanel<T>() where T : UIPanel;
+        T GetPanel<T>(bool logIfMissing = true) where T : UIPanel;
         void OpenPanel<T>() where T : UIPanel;
         void ClosePanel<T>() where T : UIPanel;
         void CloseAllPanels();
@@ -92,8 +92,6 @@ namespace SunnysideIsland.UI
         
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            Debug.Log($"[UIManager] Scene loaded: {scene.name} - Reinitializing panels");
-
             if (_closeAllOnSceneChange)
             {
                 _panelStack.Clear();
@@ -114,7 +112,6 @@ namespace SunnysideIsland.UI
                 // 씬 시작 시 기본으로 열려야 하는 패널 (MainMenuPanel 등)은 숨기지 않음
                 if (panel.IsOpen)
                 {
-                    Debug.Log($"[UIManager] Keeping panel open: {panel.GetType().Name}");
                     var type = panel.GetType();
                     if (!_panelDictionary.ContainsKey(type))
                     {
@@ -171,7 +168,7 @@ namespace SunnysideIsland.UI
             }
         }
         
-        public T GetPanel<T>() where T : UIPanel
+        public T GetPanel<T>(bool logIfMissing = true) where T : UIPanel
         {
             var type = typeof(T);
             if (_panelDictionary.TryGetValue(type, out var panel))
@@ -187,8 +184,11 @@ namespace SunnysideIsland.UI
                     _panels.Add(found);
                 return found;
             }
-            
-            Debug.LogWarning($"[UIManager] Panel {typeof(T).Name} not found!");
+
+            if (logIfMissing)
+            {
+                Debug.LogWarning($"[UIManager] Panel {typeof(T).Name} not found!");
+            }
             return null;
         }
         
