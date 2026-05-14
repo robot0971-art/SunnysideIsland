@@ -1,12 +1,9 @@
 ﻿using DI;
 using SunnysideIsland.Building;
 using SunnysideIsland.Core;
-using SunnysideIsland.Environment;
 using SunnysideIsland.Events;
 using SunnysideIsland.Farming;
-using SunnysideIsland.GameData;
 using SunnysideIsland.Input;
-using SunnysideIsland.Items;
 using SunnysideIsland.UI;
 using SunnysideIsland.Pool;
 using UnityEngine;
@@ -17,6 +14,10 @@ namespace SunnysideIsland.Player
 {
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(Animator))]
+    [RequireComponent(typeof(PlayerMovement))]
+    [RequireComponent(typeof(PlayerInteraction))]
+    [RequireComponent(typeof(PlayerCombat))]
+    [RequireComponent(typeof(PlayerBuildController))]
     public class PlayerController : MonoBehaviour, ISaveable
     {
         [Header("=== Movement Settings ===")]
@@ -47,14 +48,26 @@ namespace SunnysideIsland.Player
         [SerializeField] private Animator _animator;
         [SerializeField] private SpriteRenderer _spriteRenderer;
         [SerializeField] private UnityEngine.AI.NavMeshAgent _navMeshAgent;
+        [SerializeField] private PlayerMovement _movement;
+        [SerializeField] private PlayerInteraction _interaction;
+        [SerializeField] private PlayerCombat _combat;
+        [SerializeField] private PlayerBuildController _buildController;
 
         [Header("=== Swim Settings ===")]
         [SerializeField] private LayerMask _seaLayer;
         [SerializeField] private float _swimSpeed = 2.5f;
-        private bool _isSwimming;
-        private static readonly int AnimSwimming = Animator.StringToHash("Swimming");
-        public bool IsSwimming => _isSwimming;
-        public bool CanMove { get => _canMove; set => _canMove = value; }
+        public bool IsSwimming => _movement != null && _movement.IsSwimming;
+        public bool CanMove
+        {
+            get => _movement == null || _movement.CanMove;
+            set
+            {
+                if (_movement != null)
+                {
+                    _movement.CanMove = value;
+                }
+            }
+        }
 
         [Header("=== Input ===")]
         [SerializeField] private InputActionAsset _inputActions;
@@ -79,51 +92,12 @@ namespace SunnysideIsland.Player
             }
         }
 
-        private IPoolManager PoolManager
-        {
-            get
-            {
-                if (_poolManager == null)
-                {
-                    DIContainer.TryResolve(out _poolManager);
-                }
-
-                return _poolManager;
-            }
-        }
-
-        private Vector2 _moveDirection;
-        private Vector2 _facingDirection = Vector2.down;
-        private bool _isSprinting;
-        private bool _isRolling;
-        private bool _isAttacking;
         private bool _isDead;
-        private float _rollTimer;
-        private float _rollCooldownTimer;
-        private float _attackCooldownTimer;
-        private bool _canMove = true;
 
-        private static readonly int AnimMoveX = Animator.StringToHash("MoveX");
-        private static readonly int AnimMoveY = Animator.StringToHash("MoveY");
-        private static readonly int AnimIsMoving = Animator.StringToHash("IsMoving");
-        private static readonly int AnimIsSprinting = Animator.StringToHash("IsSprinting");
-        private static readonly int AnimRoll = Animator.StringToHash("Roll");
-        private static readonly int AnimFacingX = Animator.StringToHash("FacingX");
-        private static readonly int AnimFacingY = Animator.StringToHash("FacingY");
-        private static readonly int AnimAttack = Animator.StringToHash("Attack");
         private static readonly int AnimHurt = Animator.StringToHash("Hurt");
         private static readonly int AnimDeath = Animator.StringToHash("Death");
         private static readonly int AnimIsDead = Animator.StringToHash("IsDead");
-        private static readonly int AnimWater = Animator.StringToHash("Water");
-        private static readonly int AnimHammer = Animator.StringToHash("Hammer");
-
-        private bool _isBuilding;
-        private Vector3 _buildTargetPosition;
-        private DetailedBuildingData _pendingBuildingData;
-        private Vector3Int _pendingGridPosition;
-        private int _hammerCount;
         private System.Action _onBuildComplete;
-        private Coroutine _buildCoroutine;
         private readonly System.Collections.Generic.HashSet<int> _animatorParameterHashes = new System.Collections.Generic.HashSet<int>();
 
         [SerializeField] private GameObject _plotPrefab;
@@ -136,6 +110,29 @@ namespace SunnysideIsland.Player
             if (_rb == null) _rb = GetComponent<Rigidbody2D>();
             if (_animator == null) _animator = GetComponent<Animator>();
             if (_spriteRenderer == null) _spriteRenderer = GetComponent<SpriteRenderer>();
+            if (_movement == null) _movement = GetComponent<PlayerMovement>();
+            if (_movement == null) _movement = gameObject.AddComponent<PlayerMovement>();
+            if (_interaction == null) _interaction = GetComponent<PlayerInteraction>();
+            if (_interaction == null) _interaction = gameObject.AddComponent<PlayerInteraction>();
+            if (_combat == null) _combat = GetComponent<PlayerCombat>();
+            if (_combat == null) _combat = gameObject.AddComponent<PlayerCombat>();
+            if (_buildController == null) _buildController = GetComponent<PlayerBuildController>();
+            if (_buildController == null) _buildController = gameObject.AddComponent<PlayerBuildController>();
+            _movement.Configure(
+                _rb,
+                _animator,
+                _spriteRenderer,
+                _seaLayer,
+                _groundLayer,
+                _moveSpeed,
+                _sprintSpeed,
+                _rollSpeed,
+                _rollDuration,
+                _rollCooldown,
+                _swimSpeed);
+            ConfigureInteraction();
+            ConfigureCombat();
+            ConfigureBuildController();
             CacheAnimatorParameters();
 
             if (GetComponent<SeaDiscoveryTracker>() == null)
@@ -161,7 +158,6 @@ namespace SunnysideIsland.Player
         private void OnDestroy()
         {
             _moveAction?.Disable();
-            EventBus.Unsubscribe<BuildingPlaceRequestedEvent>(OnBuildingPlaceRequested);
             EventBus.Unsubscribe<PlayerDiedEvent>(OnPlayerDied);
         }
 
@@ -176,8 +172,51 @@ namespace SunnysideIsland.Player
                 _navMeshAgent.updateUpAxis = false;
             }
 
-            EventBus.Subscribe<BuildingPlaceRequestedEvent>(OnBuildingPlaceRequested);
+            ConfigureInteraction();
+            ConfigureCombat();
+            ConfigureBuildController();
+
             EventBus.Subscribe<PlayerDiedEvent>(OnPlayerDied);
+        }
+
+        private void ConfigureInteraction()
+        {
+            _interaction.Configure(
+                _animator,
+                _movement,
+                _cropSelectionSystem,
+                _farmingManager,
+                _grid,
+                _poolManager,
+                _plotPrefab,
+                _interactableLayer,
+                _farmingLayer,
+                _treeLayer,
+                _harvestLayer,
+                _groundLayer);
+        }
+
+        private void ConfigureCombat()
+        {
+            _combat.Configure(
+                _animator,
+                _movement,
+                _attackRange,
+                _attackRadius,
+                _attackCooldown,
+                _attackHitDelay,
+                _attackRecoverTime);
+        }
+
+        private void ConfigureBuildController()
+        {
+            _buildController.Configure(
+                _rb,
+                _animator,
+                _navMeshAgent,
+                _movement,
+                _buildingSystem,
+                _buildStandOffDistance);
         }
 
         private void Update()
@@ -185,7 +224,7 @@ namespace SunnysideIsland.Player
             if (_isDead)
             {
                 HandleTimers();
-                UpdateAnimations();
+                _movement.UpdateAnimations();
                 return;
             }
 
@@ -201,11 +240,10 @@ namespace SunnysideIsland.Player
 
             if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameState.Paused)
             {
-                _moveDirection = Vector2.zero;
-                _rb.linearVelocity = Vector2.zero;
+                _movement.Stop();
                 CheckCancelAutoMove();
                 HandleTimers();
-                UpdateAnimations();
+                _movement.UpdateAnimations();
                 return;
             }
 
@@ -214,97 +252,49 @@ namespace SunnysideIsland.Player
             {
                 CheckCancelAutoMove();
                 HandleTimers();
-                UpdateAnimations();
+                _movement.UpdateAnimations();
                 return;
             }
 
             CheckCancelAutoMove();
 
-            if (!_canMove) return;
+            if (!_movement.CanMove) return;
 
-            float checkRadius = 0.2f;
-            bool isOverSea = Physics2D.OverlapCircle(transform.position, checkRadius, _seaLayer) != null;
-            bool isOverGround = Physics2D.OverlapCircle(transform.position, checkRadius, _groundLayer) != null;
-
-            bool shouldSwim = isOverSea && !isOverGround;
-
-            if (shouldSwim && !_isSwimming) SetSwimming(true);
-            else if (!shouldSwim && _isSwimming) SetSwimming(false);
+            _movement.TickEnvironment();
 
             HandleInput();
             HandleTimers();
-            UpdateAnimations();
+            _movement.UpdateAnimations();
         }
 
         private void CheckCancelAutoMove()
         {
-            if (_isBuilding)
+            if (!_buildController.IsBuilding)
             {
-                Vector2 inputVector = Vector2.zero;
-                if (_moveAction != null)
-                {
-                    inputVector = _moveAction.ReadValue<Vector2>();
-                }
-                else
-                {
-                    inputVector = new Vector2(GameInput.GetAxisRaw("Horizontal"), GameInput.GetAxisRaw("Vertical"));
-                }
-
-                if (inputVector.sqrMagnitude > 0.01f)
-                {
-                    CancelBuilding();
-                }
+                return;
             }
-        }
 
-        private void CancelBuilding()
-        {
-            if (_isBuilding)
+            Vector2 inputVector = Vector2.zero;
+            if (_moveAction != null)
             {
-                if (_buildCoroutine != null)
-                {
-                    StopCoroutine(_buildCoroutine);
-                    _buildCoroutine = null;
-                }
-                _isBuilding = false;
-                _canMove = true;
-                _pendingBuildingData = null;
-
-                if (_navMeshAgent != null && _navMeshAgent.isOnNavMesh)
-                {
-                    _navMeshAgent.ResetPath();
-                }
-
-                _rb.linearVelocity = Vector2.zero;
-                _moveDirection = Vector2.zero;
+                inputVector = _moveAction.ReadValue<Vector2>();
             }
+            else
+            {
+                inputVector = new Vector2(GameInput.GetAxisRaw("Horizontal"), GameInput.GetAxisRaw("Vertical"));
+            }
+
+            _buildController.CancelIfManualInput(inputVector);
         }
 
         public void PauseMovement(float duration)
         {
-            if (gameObject.activeInHierarchy)
-            {
-                StartCoroutine(PauseMovementRoutine(duration));
-            }
-        }
-
-        private System.Collections.IEnumerator PauseMovementRoutine(float duration)
-        {
-            _canMove = false;
-            _rb.linearVelocity = Vector2.zero;
-
-            // ?띾뱷 ?좊땲硫붿씠?섏씠 ?덈떎硫??ш린???몃━嫄?(?? "PickUp")
-            // _animator.SetTrigger("PickUp");
-
-            yield return new WaitForSeconds(duration);
-
-            _canMove = true;
+            _movement.Pause(duration);
         }
 
         private void FixedUpdate()
         {
-            if (_isDead || !_canMove) return;
-            Move();
+            _movement.FixedTick(_combat.IsAttacking);
         }
 
         private void HandleInput()
@@ -316,7 +306,7 @@ namespace SunnysideIsland.Player
 
             if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameState.Paused)
             {
-                _moveDirection = Vector2.zero;
+                _movement.Stop();
                 return;
             }
 
@@ -331,19 +321,14 @@ namespace SunnysideIsland.Player
                 inputVector = new Vector2(GameInput.GetAxisRaw("Horizontal"), GameInput.GetAxisRaw("Vertical"));
             }
 
-            _moveDirection = inputVector.normalized;
+            _movement.SetInput(inputVector);
+            _movement.SetSprinting(GameInput.GetKey(KeyCode.LeftShift));
 
-            if (_moveDirection != Vector2.zero && !_isRolling)
-                _facingDirection = _moveDirection;
+            if (GameInput.GetKeyDown(KeyCode.Space))
+                _movement.TryRoll();
 
-            _isSprinting = GameInput.GetKey(KeyCode.LeftShift) && !_isRolling;
-
-            if (GameInput.GetKeyDown(KeyCode.Space) && CanRoll() && !_isSwimming)
-                Roll();
-
-            if (GameInput.GetKeyDown(_attackKey) && CanAttack())
+            if (GameInput.GetKeyDown(_attackKey) && _combat.TryAttack(_buildController.IsBuilding, _isDead))
             {
-                StartCoroutine(AttackRoutine());
                 return;
             }
 
@@ -381,39 +366,7 @@ namespace SunnysideIsland.Player
 
             if (GameInput.GetKeyDown(KeyCode.E)) // ?섏쁺 以묒뿉???꾩씠?쒖쓣 二쇱슱 ???덈룄濡?!_isSwimming ?쒓굅
             {
-                bool workDone = TryInteract();
-
-                if (!workDone && !_isSwimming) // ?낆뿉?쒕쭔 媛?ν븳 ?됰룞??(臾쇱＜湲? 援щ찉?뚭린)
-                {
-                    workDone = ExecuteWateringWithResult();
-                    if (!workDone)
-                    {
-                        TryCreatePlot();
-                    }
-                }
-            }
-        }
-
-        private void Move()
-        {
-            if (_isRolling || _isAttacking) return;
-            if (_isDead) return;
-
-            float targetSpeed = _moveSpeed;
-            if (_isSwimming) targetSpeed = _swimSpeed;
-            else if (_isSprinting) targetSpeed = _sprintSpeed;
-
-            Vector2 moveDir = _moveDirection;
-            Vector2 velocity = moveDir * targetSpeed;
-
-            if (velocity.sqrMagnitude > 0.01f)
-            {
-                _rb.MovePosition(_rb.position + velocity * Time.fixedDeltaTime);
-            }
-
-            if (_moveDirection != Vector2.zero)
-            {
-                EventBus.Publish(new PlayerMovedEvent { Position = transform.position, Direction = _moveDirection, IsSprinting = _isSprinting });
+                _interaction.HandlePrimaryAction();
             }
         }
 
@@ -421,7 +374,7 @@ namespace SunnysideIsland.Player
         {
             if (((1 << collision.gameObject.layer) & _seaLayer) != 0)
             {
-                SetSwimming(true);
+                _movement.SetSwimming(true);
             }
         }
 
@@ -429,325 +382,14 @@ namespace SunnysideIsland.Player
         {
             if (((1 << collision.gameObject.layer) & _seaLayer) != 0)
             {
-                SetSwimming(false);
+                _movement.SetSwimming(false);
             }
         }
-
-        private void SetSwimming(bool enable)
-        {
-            _isSwimming = enable;
-            if (_animator != null)
-                _animator.SetBool(AnimSwimming, enable);
-        }
-
-        private void TryCreatePlot()
-        {
-            Vector2 origin = (Vector2)transform.position + new Vector2(0, 0.1f);
-            Vector2 rawTargetPos = origin + _facingDirection * 1.0f;
-            Vector2 targetPos = rawTargetPos;
-
-            // Grid Snapping
-            if (_grid != null)
-            {
-                Vector3Int cellPos = _grid.WorldToCell(rawTargetPos);
-                targetPos = _grid.GetCellCenterWorld(cellPos);
-            }
-
-            Collider2D treeCheck = Physics2D.OverlapCircle(targetPos, 0.4f, _treeLayer);
-            Collider2D harvestCheck = Physics2D.OverlapCircle(targetPos, 0.4f, _harvestLayer);
-            if (treeCheck != null || harvestCheck != null) return;
-
-            Collider2D groundCheck = Physics2D.OverlapPoint(targetPos, _groundLayer);
-
-            if (groundCheck != null)
-            {
-                Collider2D overlap = Physics2D.OverlapCircle(targetPos, 0.2f, _interactableLayer);
-                if (overlap == null)
-                {
-                    _animator.SetTrigger("Dig");
-                    StartCoroutine(DelayedCreatePlot(targetPos, 0.4f));
-                }
-            }
-        }
-
-        private bool ExecuteWateringWithResult()
-        {
-            Vector2 origin = (Vector2)transform.position + new Vector2(0, 0.2f);
-            RaycastHit2D hit = Physics2D.Raycast(origin, _facingDirection, 0.7f, _farmingLayer);
-
-            if (hit.collider != null && hit.collider.TryGetComponent(out FarmPlot plot))
-            {
-                ExecuteWatering();
-                return true;
-            }
-            return false;
-        }
-
-        private bool TryInteract()
-        {
-            Vector2 origin = (Vector2)transform.position + new Vector2(0, 0.1f);
-            float radius = 0.8f;
-            float distance = 1.5f;
-
-            Collider2D[] nearbyInteractables = Physics2D.OverlapCircleAll(origin, 2.0f, _interactableLayer);
-            Campfire nearestCampfire = null;
-            foreach (var col in nearbyInteractables)
-            {
-                if (col.TryGetComponent(out Campfire cf))
-                {
-                    nearestCampfire = cf;
-                    break;
-                }
-            }
-            bool isNearCampfire = nearestCampfire != null;
-
-            RaycastHit2D hit = Physics2D.CircleCast(origin, 0.4f, _facingDirection, 2.0f, _interactableLayer);
-            IInteractable targetInteractable = null;
-
-            if (hit.collider != null)
-            {
-                hit.collider.TryGetComponent(out targetInteractable);
-                if (targetInteractable == null)
-                {
-                    targetInteractable = hit.collider.GetComponentInParent<IInteractable>();
-                }
-            }
-            else if (isNearCampfire)
-            {
-                targetInteractable = nearestCampfire;
-            }
-
-            if (targetInteractable != null)
-            {
-                if (targetInteractable.CanInteract())
-                {
-                    targetInteractable.Interact();
-                    return true;
-                }
-                if (isNearCampfire) return true;
-            }
-
-            if (isNearCampfire) return true;
-
-            RaycastHit2D[] harvestHits = Physics2D.CircleCastAll(origin, radius, _facingDirection, distance, _harvestLayer);
-            if (harvestHits.Length > 0)
-            {
-                if (harvestHits[0].collider.TryGetComponent(out PickableItem item))
-                {
-                    item.PickUp();
-                    _animator.SetTrigger("Harvest");
-                    return true;
-                }
-            }
-
-            RaycastHit2D[] treeHits = Physics2D.CircleCastAll(origin, radius, _facingDirection, distance, _treeLayer);
-            if (treeHits.Length > 0)
-            {
-                if (treeHits[0].collider.TryGetComponent(out HarvestableTree tree))
-                {
-                    if (!tree.IsChopped)
-                    {
-                        tree.Chop();
-                        _animator.SetTrigger("Axe");
-                        return true;
-                    }
-                }
-            }
-            
-            RaycastHit2D farmHit = Physics2D.Raycast(origin, _facingDirection, 1.0f, _interactableLayer);
-            if (farmHit.collider != null && farmHit.collider.TryGetComponent(out FarmPlot plot))
-            {
-                if (plot.IsEmpty)
-                {
-                    var selectedCrop = _cropSelectionSystem?.SelectedCrop;
-                    if (selectedCrop != null)
-                    {
-                        if (_cropSelectionSystem.TryConsume(_cropSelectionSystem.SelectedIndex, 1))
-                        {
-                            plot.Plant(selectedCrop.seedItemId, selectedCrop);
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"[PlayerController] {_cropSelectionSystem.SelectedCrop?.cropName} ?섎웾??遺議깊빀?덈떎 (x{_cropSelectionSystem.GetCount(_cropSelectionSystem.SelectedIndex)})");
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogWarning("[PlayerController] No crop selected");
-                    }
-                }
-                else
-                {
-                    if (plot.IsReady)
-                    {
-                        plot.Harvest();
-                        _animator.SetTrigger("Harvest");
-                    }
-                    else
-                    {
-                        ExecuteWatering();
-                    }
-                }
-                return true;
-            }
-            
-            return false;
-        }
-
-        private void ExecuteWatering()
-        {
-            Vector2 origin = (Vector2)transform.position + new Vector2(0, 0.2f);
-            RaycastHit2D hit = Physics2D.Raycast(origin, _facingDirection, 0.7f, _farmingLayer);
-
-            if (hit.collider != null)
-            {
-                _animator.SetTrigger(AnimWater);
-                if (hit.collider.TryGetComponent(out FarmPlot plot))
-                {
-                    StartCoroutine(DelayedWatering(plot, 0.5f));
-                }
-            }
-        }
-
-        private System.Collections.IEnumerator DelayedWatering(FarmPlot plot, float delay)
-        {
-            yield return new WaitForSeconds(delay);
-            if (plot != null) plot.Water();
-        }
-
-        private System.Collections.IEnumerator DelayedCreatePlot(Vector2 spawnPos, float delay)
-        {
-            for (int i = 0; i < 5; i++)
-            {
-                _animator.ResetTrigger("Dig");
-                _animator.SetTrigger("Dig");
-                yield return new WaitForSeconds(delay);
-            }
-
-            string poolName = "FarmPlot";
-            GameObject newPlot = null;
-
-            if (PoolManager != null)
-            {
-                if (PoolManager.GetPool(poolName) == null)
-                {
-                    PoolManager.CreatePool(poolName, _plotPrefab, 20, 100);
-                }
-                newPlot = PoolManager.Spawn(poolName, new Vector3(spawnPos.x, spawnPos.y, 0), Quaternion.identity);
-            }
-            else
-            {
-                newPlot = Instantiate(_plotPrefab, new Vector3(spawnPos.x, spawnPos.y, 0), Quaternion.identity);
-            }
-
-            if (newPlot != null && newPlot.TryGetComponent(out FarmPlot plotScript))
-            {
-                plotScript.Clear();
-                if (_farmingManager != null) _farmingManager.RegisterPlot(plotScript);
-            }
-        }
-
-        private void Roll()
-        {
-            _isRolling = true;
-            _rollTimer = _rollDuration;
-            _rollCooldownTimer = _rollCooldown + _rollDuration;
-            _rb.linearVelocity = _facingDirection * _rollSpeed;
-            _animator.SetTrigger(AnimRoll);
-        }
-
-        private bool CanRoll() => _rollCooldownTimer <= 0 && _facingDirection != Vector2.zero;
 
         private void HandleTimers()
         {
-            if (_rollTimer > 0)
-            {
-                _rollTimer -= Time.deltaTime;
-                if (_rollTimer <= 0)
-                {
-                    _isRolling = false;
-                    _rb.linearVelocity = Vector2.zero;
-                }
-            }
-            if (_rollCooldownTimer > 0) _rollCooldownTimer -= Time.deltaTime;
-            if (_attackCooldownTimer > 0) _attackCooldownTimer -= Time.deltaTime;
-        }
-
-        private bool CanAttack()
-        {
-            return _attackCooldownTimer <= 0f && !_isRolling && !_isSwimming && !_isAttacking && !_isBuilding && !_isDead;
-        }
-
-        private System.Collections.IEnumerator AttackRoutine()
-        {
-            _isAttacking = true;
-            _attackCooldownTimer = _attackCooldown;
-            _moveDirection = Vector2.zero;
-            _rb.linearVelocity = Vector2.zero;
-            _animator.SetTrigger(AnimAttack);
-
-            yield return new WaitForSeconds(_attackHitDelay);
-            PerformAttackHit();
-
-            yield return new WaitForSeconds(_attackRecoverTime);
-            _isAttacking = false;
-        }
-
-        private void PerformAttackHit()
-        {
-            Vector2 direction = _facingDirection == Vector2.zero ? Vector2.down : _facingDirection.normalized;
-            Vector2 origin = (Vector2)transform.position + new Vector2(0f, 0.1f);
-            Vector2 hitCenter = origin + direction * _attackRange;
-            Collider2D[] hits = Physics2D.OverlapCircleAll(hitCenter, _attackRadius);
-
-            float nearestDistance = float.MaxValue;
-            Animal.PigHuntable nearestPig = null;
-
-            foreach (Collider2D hit in hits)
-            {
-                if (hit == null)
-                {
-                    continue;
-                }
-
-                Animal.PigHuntable pigHuntable = hit.GetComponentInParent<Animal.PigHuntable>();
-                if (pigHuntable == null || !pigHuntable.IsAlive)
-                {
-                    continue;
-                }
-
-                float distance = Vector2.Distance(origin, hit.ClosestPoint(origin));
-                if (distance < nearestDistance)
-                {
-                    nearestDistance = distance;
-                    nearestPig = pigHuntable;
-                }
-            }
-
-            nearestPig?.TryHit();
-        }
-
-        private void UpdateAnimations()
-        {
-            if (_animator == null)
-            {
-                return;
-            }
-
-            Vector2 animVelocity = _isRolling ? _rb.linearVelocity.normalized : _moveDirection;
-
-            SetAnimatorFloatIfExists(AnimMoveX, animVelocity.x);
-            SetAnimatorFloatIfExists(AnimMoveY, animVelocity.y);
-            SetAnimatorFloatIfExists(AnimFacingX, _facingDirection.x);
-            SetAnimatorFloatIfExists(AnimFacingY, _facingDirection.y);
-
-            if (_moveDirection.x != 0)
-                _spriteRenderer.flipX = _moveDirection.x < 0;
-
-            bool isMoving = !_isSwimming && animVelocity.sqrMagnitude > 0.01f;
-            SetAnimatorBoolIfExists(AnimIsMoving, isMoving);
-            SetAnimatorBoolIfExists(AnimIsSprinting, _isSprinting && !_isSwimming);
-            SetAnimatorBoolIfExists(AnimIsDead, _isDead);
+            _movement.TickTimers(Time.deltaTime);
+            _combat.TickTimers(Time.deltaTime);
         }
 
         private void OnPlayerDied(PlayerDiedEvent evt)
@@ -758,16 +400,11 @@ namespace SunnysideIsland.Player
             }
 
             _isDead = true;
-            _canMove = false;
-            _isSprinting = false;
-            _isRolling = false;
-            _isAttacking = false;
-            _moveDirection = Vector2.zero;
-            _rb.linearVelocity = Vector2.zero;
+            _combat.CancelAttack();
 
-            CancelBuilding();
+            _buildController.CancelBuilding();
             StopAllCoroutines();
-            _animator.ResetTrigger(AnimHammer);
+            _movement.SetDead(true);
             SetAnimatorTriggerIfExists(AnimDeath);
             SetAnimatorBoolIfExists(AnimIsDead, true);
         }
@@ -813,7 +450,12 @@ namespace SunnysideIsland.Player
 
         public object GetSaveData()
         {
-            return new PlayerSaveData { Position = transform.position, FacingDirectionX = _facingDirection.x, FacingDirectionY = _facingDirection.y };
+            return new PlayerSaveData
+            {
+                Position = transform.position,
+                FacingDirectionX = _movement.FacingDirection.x,
+                FacingDirectionY = _movement.FacingDirection.y
+            };
         }
 
         public void LoadSaveData(object data)
@@ -822,104 +464,21 @@ namespace SunnysideIsland.Player
             if (saveData != null)
             {
                 transform.position = saveData.Position;
-                _facingDirection = new Vector2(saveData.FacingDirectionX, saveData.FacingDirectionY);
+                _movement.SetFacingDirection(new Vector2(saveData.FacingDirectionX, saveData.FacingDirectionY));
             }
         }
 
         [System.Serializable]
         public class PlayerSaveData { public Vector3 Position; public float FacingDirectionX; public float FacingDirectionY; }
 
-        private void OnBuildingPlaceRequested(BuildingPlaceRequestedEvent evt)
-        {
-            if (_isBuilding) return;
-
-            _isBuilding = true;
-            _canMove = false;
-            _pendingBuildingData = _buildingSystem?.GetBuildingData(evt.BuildingId);
-            _pendingGridPosition = evt.GridPosition;
-            _hammerCount = 0;
-
-            float width = _pendingBuildingData != null ? _pendingBuildingData.Size.Width : 1f;
-            float height = _pendingBuildingData != null ? _pendingBuildingData.Size.Height : 1f;
-
-            Vector3 buildingCenter = new Vector3(evt.GridPosition.x + width * 0.5f, evt.GridPosition.y + height * 0.5f, 0);
-
-            Vector3 dirToCenter = (buildingCenter - transform.position).normalized;
-            if (dirToCenter == Vector3.zero) dirToCenter = Vector3.down;
-
-            float rayDistX = (dirToCenter.x != 0) ? (width * 0.5f) / Mathf.Abs(dirToCenter.x) : float.MaxValue;
-            float rayDistY = (dirToCenter.y != 0) ? (height * 0.5f) / Mathf.Abs(dirToCenter.y) : float.MaxValue;
-            float boxRadius = Mathf.Min(rayDistX, rayDistY);
-            float standOffDistance = Mathf.Max(0.02f, _buildStandOffDistance);
-            float safeRadius = Mathf.Max(standOffDistance, boxRadius + standOffDistance);
-            _buildTargetPosition = buildingCenter - dirToCenter * safeRadius;
-
-            _facingDirection = dirToCenter;
-            _spriteRenderer.flipX = _facingDirection.x < 0;
-
-            bool navMeshReady = _navMeshAgent != null && _navMeshAgent.isOnNavMesh;
-            if (navMeshReady)
-            {
-                _navMeshAgent.SetDestination(_buildTargetPosition);
-            }
-
-            if (_buildCoroutine != null) StopCoroutine(_buildCoroutine);
-            _buildCoroutine = StartCoroutine(MoveToAndBuildRoutine(navMeshReady));
-        }
-
-        private System.Collections.IEnumerator MoveToAndBuildRoutine(bool useNavMesh)
-        {
-            while (useNavMesh ? (_navMeshAgent.pathPending || _navMeshAgent.remainingDistance > 0.1f) : Vector3.Distance(transform.position, _buildTargetPosition) > 0.1f)
-            {
-                Vector3 direction = (_buildTargetPosition - transform.position).normalized;
-                if (!useNavMesh)
-                {
-                    _rb.linearVelocity = direction * _moveSpeed;
-                }
-                yield return null;
-            }
-
-            _moveDirection = Vector2.zero;
-
-            if (useNavMesh)
-                _navMeshAgent.ResetPath();
-            else
-                _rb.linearVelocity = Vector2.zero;
-
-            int maxHammerCount = (_pendingBuildingData != null && _pendingBuildingData.BuildingId == "campfire") ? 2 : 4;
-
-            for (int i = 0; i < maxHammerCount; i++)
-            {
-                _animator.SetTrigger(AnimHammer);
-                _hammerCount++;
-                yield return new WaitForSeconds(0.5f);
-                while (_animator.GetCurrentAnimatorStateInfo(0).IsName("hamering"))
-                {
-                    yield return null;
-                }
-            }
-
-            if (_pendingBuildingData != null)
-            {
-                EventBus.Publish(new BuildingPlaceConfirmEvent
-                {
-                    BuildingId = _pendingBuildingData.BuildingId,
-                    GridPosition = _pendingGridPosition
-                });
-            }
-
-            _isBuilding = false;
-            _canMove = true;
-            _pendingBuildingData = null;
-            _buildCoroutine = null;
-        }
-
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, _interactionRadius);
 
-            Vector2 direction = _facingDirection == Vector2.zero ? Vector2.down : _facingDirection.normalized;
+            Vector2 direction = _movement.FacingDirection == Vector2.zero
+                ? Vector2.down
+                : _movement.FacingDirection.normalized;
             Vector3 attackCenter = transform.position + new Vector3(0f, 0.1f, 0f) + (Vector3)(direction * _attackRange);
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(attackCenter, _attackRadius);
